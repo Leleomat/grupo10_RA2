@@ -8,6 +8,8 @@
 #include "../main/FifoCache.h"
 #include "../main/RRCache.h"
 
+#include "../main/LruCache.h"
+
 void mostrarTexto(const Texto& texto) {
     std::cout << "\n--------------------- INICIO DO TEXTO ---------------------\n";
     std::cout << texto << std::endl;
@@ -15,8 +17,8 @@ void mostrarTexto(const Texto& texto) {
 }
 
 int main() {
-    //Por enquanto para trocar de algoritmo é necessário trocar o tipo de ponteiro criado abaixo...
-    CachePtr cacheAtual = std::make_shared<FifoCache>();
+    //CachePtr cacheAtual = std::make_shared<FifoCache>();
+    CachePtr cacheAtual = std::make_shared<LruCache>();
     std::cout << "Algoritmo de cache ativo: " << cacheAtual->getNome() << std::endl;
     std::cout << "Bem-vindo ao Leitor de Textos da 'Texto eh Vida'!" << std::endl;
 
@@ -55,6 +57,7 @@ int main() {
             if (cacheAtual) {
                 Texto texto = cacheAtual->getTexto(idTexto);
                 mostrarTexto(texto);
+                cacheAtual->printStatus();
             }
             else {
                 std::cout << "\nERRO: Nao ha um cache ativo. Nao eh possivel carregar o texto." << std::endl;
