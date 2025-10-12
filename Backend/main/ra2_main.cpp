@@ -7,7 +7,6 @@
 #include "../core/ICache.h"
 #include "../main/FifoCache.h"
 #include "../main/RRCache.h"
-
 #include "../main/LruCache.h"
 
 void mostrarTexto(const Texto& texto) {
@@ -17,8 +16,7 @@ void mostrarTexto(const Texto& texto) {
 }
 
 int main() {
-    //CachePtr cacheAtual = std::make_shared<FifoCache>();
-    CachePtr cacheAtual = std::make_shared<LruCache>();
+    CachePtr cacheAtual = std::make_shared<RRCache>();
     std::cout << "Algoritmo de cache ativo: " << cacheAtual->getNome() << std::endl;
     std::cout << "Bem-vindo ao Leitor de Textos da 'Texto eh Vida'!" << std::endl;
 

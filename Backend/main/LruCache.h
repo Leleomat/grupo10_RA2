@@ -60,7 +60,7 @@ public:
         ordemUso.push_front(id); // Insere na primeira posição da lista de ordem de uso o id do novo texto adicionado ao cache
         cache[id] = { textoDoDisco, ordemUso.begin() }; // Insere no cache na posição do id do texto, o valor do texto carregado e um ponteiro a primeira posição da lista da ordem de uso 
 
-        std::cout << "\n[CACHE] O texto " << id << " foi adicionado ao Cache LRU." << std::endl;
+        std::cout << "\n[CACHE] O texto " << id << " foi adicionado ao Cache via LRU." << std::endl;
 
         return cache[id].first; // Retorna o texto recém inserido
     }
