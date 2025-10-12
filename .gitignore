@@ -51,8 +51,6 @@
 *.lib
 *.ncb
 *.tlog
-*.vcxproj
-*.vcxproj.filters
 *.vs
 *.log
 *.tmp
