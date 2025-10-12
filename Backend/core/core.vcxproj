@@ -132,7 +132,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="conectorDiscoTemporario.h" />
     <ClInclude Include="core.h" />
     <ClInclude Include="ICache.h" />
   </ItemGroup>

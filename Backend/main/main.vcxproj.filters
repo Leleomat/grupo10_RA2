@@ -20,9 +20,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CacheGuardaChuva.h">
-      <Filter>Arquivos de Cabeçalho</Filter>
-    </ClInclude>
     <ClInclude Include="FifoCache.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
