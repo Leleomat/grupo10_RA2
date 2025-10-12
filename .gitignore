@@ -51,7 +51,8 @@
 *.lib
 *.ncb
 *.tlog
-
+*.vcxproj
+*.vcxproj.filters
 *.vs
 *.log
 *.tmp
@@ -63,7 +64,6 @@
 ipch/
 *.opensdf
 Release/
-
 
 # Build folders
 x64/
