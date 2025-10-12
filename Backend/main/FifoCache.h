@@ -22,7 +22,7 @@ public:
     std::string getTexto(int id) override {
         // Se já estiver no cache
         if (cache.find(id) != cache.end()) {
-            std::cout << "\n\n" << "TEXTO NO CACHE..." << "\n\n";
+            std::cout << "\n\n" << "[CACHE HIT] Texto no cache..." << "\n\n";
             return cache[id];
         }
 

@@ -6,6 +6,7 @@
 #include <limits>
 #include "../core/ICache.h"
 #include "../main/FifoCache.h"
+#include "../main/RRCache.h"
 
 void mostrarTexto(const Texto& texto) {
     std::cout << "\n--------------------- INICIO DO TEXTO ---------------------\n";
@@ -14,6 +15,7 @@ void mostrarTexto(const Texto& texto) {
 }
 
 int main() {
+    //Por enquanto para trocar de algoritmo é necessário trocar o tipo de ponteiro criado abaixo...
     CachePtr cacheAtual = std::make_shared<FifoCache>();
     std::cout << "Algoritmo de cache ativo: " << cacheAtual->getNome() << std::endl;
     std::cout << "Bem-vindo ao Leitor de Textos da 'Texto eh Vida'!" << std::endl;
