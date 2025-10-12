@@ -53,10 +53,10 @@ public:
     }
 
     void printStatus() const override {
-        std::cout << "\n--- STATUS DO CACHE FIFO ---" << std::endl;
+        std::cout << "\n------------------- STATUS DO CACHE FIFO -------------------" << std::endl;
         std::cout << "Cache FIFO atual (do mais antigo ao mais novo):\n";
         for (int id : ordemInsercao)
-            std::cout << " - ID: " << id << "\n";
-        std::cout << "---------------------------\n" << std::endl;
+            std::cout << " - Texto Numero " << id << "\n";
+        std::cout << "------------------------------------------------------------\n" << std::endl;
     }
 };
