@@ -63,3 +63,9 @@
 ipch/
 *.opensdf
 Release/
+
+# Build folders
+x64/
+Debug/
+*.idb
+*.exe.recipe
