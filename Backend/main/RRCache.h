@@ -76,7 +76,7 @@ public:
         idsCache.push_back(id);
         // Adiciona o id ao vetor para futuras seleções aleatórias.
 
-        std::cout << "\n[CACHE] O texto " << id << " foi adicionado ao Cache." << std::endl;
+        std::cout << "\n[CACHE] O texto " << id << " foi adicionado ao Cache via RR." << std::endl;
         // Log informando inserção.
 
         return cache[id];
@@ -89,11 +89,11 @@ public:
     }
 
     void printStatus() const override {
-        std::cout << "\n--- STATUS DO CACHE RR ---" << std::endl;
+        std::cout << "\n-------------------- STATUS DO CACHE RR -------------------" << std::endl;
         std::cout << "Cache RR atual (ordem não significativa):\n";
         for (int id : idsCache)
-            std::cout << " - ID: " << id << "\n";
-        std::cout << "---------------------------\n" << std::endl;
+            std::cout << " - Texto Numero " << id << "\n";
+        std::cout << "------------------------------------------------------------\n" << std::endl;
         // Imprime o estado atual do cache (útil para debug). Note que a ordem não tem significado semântico.
     }
 };

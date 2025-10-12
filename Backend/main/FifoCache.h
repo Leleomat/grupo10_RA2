@@ -46,7 +46,7 @@ public:
         cache[id] = textoDoDisco;
         ordemInsercao.push_back(id);
 
-        std::cout << "\n[CACHE] O texto " << id << " foi adicionado ao Cache." << std::endl;
+        std::cout << "\n[CACHE] O texto " << id << " foi adicionado ao Cache via FIFO." << std::endl;
 
         // Retorna o conteúdo do texto (seja ele novo ou já existente).
         return cache[id];
@@ -59,13 +59,13 @@ public:
 
     void printStatus() const override {
         // Exibe o estado atual do cache no console.
-        std::cout << "\n--- STATUS DO CACHE FIFO ---" << std::endl;
+        std::cout << "\n------------------- STATUS DO CACHE FIFO ------------------" << std::endl;
         std::cout << "Cache FIFO atual (do mais antigo ao mais novo):\n";
 
         // Percorre a lista na ordem de inserção e mostra os IDs armazenados.
         for (int id : ordemInsercao)
-            std::cout << " - ID: " << id << "\n";
+            std::cout << " - Texto Numero " << id << "\n";
 
-        std::cout << "---------------------------\n" << std::endl;
+        std::cout << "-----------------------------------------------------------\n" << std::endl;
     }
 };

@@ -50,7 +50,7 @@ public:
         ordemUso.push_front(id);
         cache[id] = { textoDoDisco, ordemUso.begin() };
 
-        std::cout << "\n[CACHE] O texto " << id << " foi adicionado ao Cache LRU." << std::endl;
+        std::cout << "\n[CACHE] O texto " << id << " foi adicionado ao Cache via LRU." << std::endl;
 
         return cache[id].first;
     }
