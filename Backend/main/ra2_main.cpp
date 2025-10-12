@@ -6,6 +6,7 @@
 #include <limits>
 #include "../core/ICache.h"
 #include "../main/FifoCache.h"
+
 #include "../main/LruCache.h"
 
 void mostrarTexto(const Texto& texto) {
@@ -55,6 +56,7 @@ int main() {
             if (cacheAtual) {
                 Texto texto = cacheAtual->getTexto(idTexto);
                 mostrarTexto(texto);
+                cacheAtual->printStatus();
             }
             else {
                 std::cout << "\nERRO: Nao ha um cache ativo. Nao eh possivel carregar o texto." << std::endl;

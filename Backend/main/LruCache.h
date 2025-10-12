@@ -60,11 +60,11 @@ public:
     }
 
     void printStatus() const override {
-        std::cout << "\n--- STATUS DO CACHE LRU ---" << std::endl;
+        std::cout << "\n------------------- STATUS DO CACHE LRU -------------------" << std::endl;
         std::cout << "Cache LRU atual (do mais recente ao menos recente):\n";
         for (int id : ordemUso)
-            std::cout << " - ID: " << id << "\n";
-        std::cout << "---------------------------\n" << std::endl;
+            std::cout << " - Texto Numero " << id << "\n";
+        std::cout << "-----------------------------------------------------------\n" << std::endl;
     }
 };
 
