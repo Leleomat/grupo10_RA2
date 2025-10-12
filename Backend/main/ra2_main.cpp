@@ -6,6 +6,7 @@
 #include <limits>
 #include "../core/ICache.h"
 #include "../main/FifoCache.h"
+#include "../main/RRCache.h"
 
 #include "../main/LruCache.h"
 
