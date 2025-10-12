@@ -1,14 +1,42 @@
 #include <iostream>
 #include <string>
-#include <limits> // Para limpar o buffer de entrada
-#include "../core/ICache.h" // Incluindo a interface (ajuste o caminho se necessário)
+#include <unordered_map>
+#include <list>
+#include <memory>
+#include <limits>
+#include "../main/CacheGuardaChuva.h"
+#include "../core/ICache.h"
 #include "../core/conectorDiscoTemporario.h"
+#include "../main/FifoCache.h"
+
 // --- ATENÇÃO ---
 // No futuro, aqui incluiremos os headers dos algoritmos dos seus colegas.
 // #include "../algorithms/FifoCache.h"
 // #include "../algorithms/LruCache.hh"
 // E também o módulo de simulação.
 // #include "../simulation/simulation.h"
+
+class CacheGenerico {
+private:
+    std::shared_ptr<CacheGuardaChuva> algoritmoCache;
+
+public:
+    CacheGenerico(std::shared_ptr<CacheGuardaChuva> algoritmo) : algoritmoCache(algoritmo) {}
+
+    void setAlgoritmo(std::shared_ptr<CacheGuardaChuva> algoritmo) {
+        algoritmoCache = algoritmo;
+    }
+
+    std::string getTexto(int id) {
+        if (!algoritmoCache) return "";
+        return algoritmoCache->getTexto(id);
+    }
+
+    void printStatus() const {
+        if (algoritmoCache)
+            algoritmoCache->printStatus();
+    }
+};
 
 void mostrarTexto(const Texto& texto) {
     std::cout << "\n--------------------- INICIO DO TEXTO ---------------------\n";
@@ -26,6 +54,10 @@ int main() {
     std::cout << "Bem-vindo ao Leitor de Textos da 'Texto eh Vida'!" << std::endl;
     // Aqui, você carregaria a configuração do último cache escolhido na simulação.
     // Por agora, vamos apenas simular que nenhum foi escolhido ainda.
+
+    std::shared_ptr<CacheGuardaChuva> fifo = std::make_shared<FifoCache>();
+    CacheGenerico cache(fifo);
+
 
     int idTexto = -1;
 
@@ -71,6 +103,23 @@ int main() {
             std::cout << "\nNumero de texto invalido. Por favor, escolha um numero entre 1 e 100.\n" << std::endl;
         }
     }
+
+    /*std::shared_ptr<CacheGuardaChuva> fifo = std::make_shared<FifoCache>();
+    CacheGenerico cache(fifo);
+
+    
+    int i = 1;
+    std::string texto = cache.getTexto(i);
+
+    std::cout << texto << "\n\n";
+
+    texto = cache.getTexto(i);
+    
+    std::cout << texto << "\n\n";
+
+    cache.printStatus();*/
+
+    //Complexo
 
     return 0;
 }
