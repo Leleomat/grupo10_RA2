@@ -51,7 +51,6 @@
 *.lib
 *.ncb
 *.tlog
-
 *.vs
 *.log
 *.tmp
@@ -63,7 +62,6 @@
 ipch/
 *.opensdf
 Release/
-
 
 # Build folders
 x64/
