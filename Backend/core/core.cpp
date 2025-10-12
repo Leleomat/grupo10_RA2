@@ -9,8 +9,6 @@
 // Implementação da função que simula a leitura lenta.
 namespace Disco {
     Texto lerTextoDoDisco(int textId) {
-        // Assume que os textos estão na pasta "texts" e nomeados como "texto_ID.txt"
-        // Ex: "texts/1.txt", "texts/2.txt", etc.
         std::string path = "../../texts/" + std::to_string(textId) + ".txt";
 
         std::cout << "\n[DISCO LENTO] Acessando o disco para ler o arquivo: " << path << "..." << std::endl;
