@@ -13,6 +13,7 @@
 #include <chrono>
 #include <iomanip>
 #include <algorithm>
+#define NOMINMAX
 #include <windows.h>
 
 void mostrarTexto(const Texto& texto) {
