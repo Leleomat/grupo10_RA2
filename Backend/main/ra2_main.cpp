@@ -13,6 +13,7 @@
 #include <chrono>
 #include <iomanip>
 #include <algorithm>
+#define NOMINMAX
 #include <windows.h>
 
 void mostrarTexto(const Texto& texto) {
@@ -25,7 +26,7 @@ int main() {
     CachePtr cacheAtual = nullptr;
     //CachePtr cacheAtual = std::make_shared<FifoCache>();
     
-    std::cout << "Bem-vindo ao Leitor de Textos da 'Texto eh Vida'!" << std::endl;
+    std::cout << " ~~~~~ Bem-vindo ao Leitor de Textos da 'Texto eh Vida'! ~~~~~ " << std::endl;
 
     int idTexto = -1;
     // Vetores para coletar dados para o gráfico
@@ -38,14 +39,14 @@ int main() {
             std::cout << " Nenhum algoritmo de cache esta ativo. Execute o modo de simulacao (-1) para escolher um." << std::endl;
             std::cout << " -1 para entrar no modo de simulacao" << std::endl;
             std::cout << "  0 para sair" << std::endl;
-            std::cout << "Sua escolha: ";
+            std::cout << " Sua escolha: ";
         }
         else {
-            std::cout << "Algoritmo de cache ativo: " << cacheAtual->getNome() << std::endl;
+            std::cout << " Algoritmo de cache ativo: " << cacheAtual->getNome() << std::endl;
             std::cout << " Digite o numero do texto que deseja ler (1-100), ou:" << std::endl;
             std::cout << " -1 para entrar no modo de simulacao" << std::endl;
             std::cout << "  0 para sair" << std::endl;
-            std::cout << "Sua escolha: ";
+            std::cout << " Sua escolha: ";
         }
         std::cin >> idTexto;
 

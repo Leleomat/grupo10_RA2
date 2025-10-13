@@ -1,13 +1,12 @@
 #pragma once
 #include "../core/ICache.h"
-#include "../core/core.h"  
+#include "../core/core.h"
 #include <unordered_map>
 #include <list>
 #include <string>
 #include <fstream>
 #include <sstream>
 #include <iostream>
-
 
 class FifoCache : public ICache {
 private:
@@ -17,7 +16,6 @@ private:
     bool ultimoHit = false;
 
 public:
-
     // Construtor padrão (nenhuma inicialização especial).
     FifoCache() = default;
 
@@ -41,7 +39,6 @@ public:
             ordemInsercao.pop_front();               // Remove o ID da lista de ordem.
             std::cout << "[CACHE INFO] Cache cheio. Removendo o texto " << idRemover << " (FIFO)." << std::endl;
         }
-
         // Carrega o texto solicitado do disco.
         std::string textoDoDisco = Disco::lerTextoDoDisco(id);
 
@@ -49,7 +46,7 @@ public:
         cache[id] = textoDoDisco;
         ordemInsercao.push_back(id);
 
-        std::cout << "\n[CACHE] O texto " << id << " foi adicionado ao Cache via FIFO." << std::endl;
+        std::cout << "[CACHE] O texto " << id << " foi adicionado ao Cache via FIFO." << std::endl;
 
         // Retorna o conteúdo do texto (seja ele novo ou já existente).
         return cache[id];

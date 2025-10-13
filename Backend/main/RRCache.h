@@ -78,7 +78,7 @@ public:
         idsCache.push_back(id);
         // Adiciona o id ao vetor para futuras seleções aleatórias.
 
-        std::cout << "\n[CACHE] O texto " << id << " foi adicionado ao Cache via RR." << std::endl;
+        std::cout << "[CACHE] O texto " << id << " foi adicionado ao Cache via RR." << std::endl;
         // Log informando inserção.
 
         return cache[id];

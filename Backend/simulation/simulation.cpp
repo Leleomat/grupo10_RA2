@@ -1,4 +1,3 @@
-
 #include "../main/simulation.h" // Inclui a própria declaração
 #include <iostream>
 #include <vector>
@@ -85,9 +84,10 @@ ResultadoUsuario simularUsuario(CachePtr cache, int usuarioId) {
     resultado.id_usuario = usuarioId;
 
     std::mt19937 rng(std::random_device{}());
-    const int numSolicitacoes = 15; // 15 por Usuario por algoritmo para teste
+    const int numSolicitacoes = 100; // 100 por Usuario por algoritmo para teste
 
     for (int i = 0; i < numSolicitacoes; ++i) {
+        std::cout << "\n~~~~~~~~~~ [ALGORITMO: " << cache->getNome() << "] - [USER " << usuarioId << "] - Solicitacao numero " << (i + 1) << " ~~~~~~~~~~";
         int idTexto;
         std::string modo_sorteio;
 
@@ -130,7 +130,7 @@ void exibirRelatorioFinal(const std::vector<ResultadoAlgoritmo>& todos_resultado
 
     for (const auto& resultado_algo : todos_resultados) {
         std::cout << "=========================================================\n";
-        std::cout << "[" << resultado_algo.nome_algoritmo << "]" << std::endl;
+        std::cout << "[ " << resultado_algo.nome_algoritmo << " ]" << std::endl;
 
         // 1. Imprime o log detalhado de cada usuário
         for (const auto& resultado_user : resultado_algo.resultados_por_usuario) {
@@ -142,7 +142,7 @@ void exibirRelatorioFinal(const std::vector<ResultadoAlgoritmo>& todos_resultado
                     << " // Tempo: " << s.tempo_ms << " ms"
                     << " // " << (s.foi_hit ? "HIT" : "MISS") << "]" << std::endl;
             }
-        
+
             // Adicionando o sumário por usuário que você tinha antes
             double tempo_total = 0;
             for (const auto& s : resultado_user.solicitacoes) {
@@ -181,14 +181,14 @@ void exibirRelatorioFinal(const std::vector<ResultadoAlgoritmo>& todos_resultado
 CachePtr executarSimulacao() {
     std::vector<ResultadoAlgoritmo> todos_os_resultados;
     const std::vector<std::string> nomesCache = { "FIFO", "LRU", "RR" };
-    
+
     // Mapa para guardar o desempenho de cada algoritmo (nome -> total de misses)
     std::map<std::string, double> performance; // mapeia nome -> tempo médio em ms
 
     for (const auto& nome : nomesCache) {
         ResultadoAlgoritmo resultado_algo_atual;
         resultado_algo_atual.nome_algoritmo = nome;
-        
+
         // Vetor para guardar os tempos médios de cada um dos 3 usuários
         std::vector<double> tempos_medios_usuarios;
 
@@ -200,13 +200,13 @@ CachePtr executarSimulacao() {
 
             if (cache) {
                 ResultadoUsuario res_user = simularUsuario(cache, usuario);
-                
+
                 // Calcula o tempo total e médio para este usuário
                 double tempo_total_usuario = 0;
                 for (const auto& s : res_user.solicitacoes) {
                     tempo_total_usuario += s.tempo_ms;
                 }
-                
+
                 // Calcula o tempo médio para ESTE usuário
                 double tempo_medio_usuario = 0;
                 if (!res_user.solicitacoes.empty()) {
