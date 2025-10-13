@@ -92,10 +92,10 @@ public:
 
     void printStatus() const override {
         std::cout << "\n-------------------- STATUS DO CACHE RR -------------------" << std::endl;
-        std::cout << "Cache RR atual (ordem não significativa):\n";
+        std::cout << "Cache RR atual (ordem nao significativa):\n";
         for (int id : idsCache)
             std::cout << " - Texto Numero " << id << "\n";
-        std::cout << "------------------------------------------------------------\n" << std::endl;
+        std::cout << "-----------------------------------------------------------\n" << std::endl;
         // Imprime o estado atual do cache (útil para debug). Note que a ordem não tem significado semântico.
     }
     bool foiHit() const override { return ultimoHit; } // ultimoHit é uma variável booleana que você seta em getTexto()

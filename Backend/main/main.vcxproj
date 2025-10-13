@@ -115,8 +115,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>
       </AdditionalLibraryDirectories>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -141,6 +140,9 @@
   <ItemGroup>
     <ProjectReference Include="..\core\core.vcxproj">
       <Project>{b7feb93d-0b74-4f39-8a0c-549a7c5e2437}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\simulation\simulation.vcxproj">
+      <Project>{e58c4db0-5ac4-49e5-9a14-8828c77bcdd7}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
