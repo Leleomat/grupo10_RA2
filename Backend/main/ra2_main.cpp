@@ -9,10 +9,7 @@
 #include "../main/RRCache.h"
 #include "../main/LruCache.h"
 #include "../main/simulation.h"
-#include <vector>
 #include <chrono>
-#include <iomanip>
-#include <algorithm>
 #define NOMINMAX
 #include <windows.h>
 
@@ -23,15 +20,15 @@ void mostrarTexto(const Texto& texto) {
 }
 
 int main() {
+    // Para fins de testes, substituir a linha abaixo por: 
+    // FIFO: CachePtr cacheAtual = std::make_shared<FifoCache>();
+    // LRU: CachePtr cacheAtual = std::make_shared<LruCache>();
+    // RR: CachePtr cacheAtual = std::make_shared<RRCache>();
     CachePtr cacheAtual = nullptr;
-    //CachePtr cacheAtual = std::make_shared<FifoCache>();
     
     std::cout << " ~~~~~ Bem-vindo ao Leitor de Textos da 'Texto eh Vida'! ~~~~~ " << std::endl;
 
     int idTexto = -1;
-    // Vetores para coletar dados para o gráfico
-    std::vector<int> idsLidos;
-    std::vector<double> temposMs;
 
 
     while (true) {
@@ -83,9 +80,6 @@ int main() {
                 std::cout << "+++ Tempo total de carregamento: " << duracao.count() << " ms +++" << std::endl;
                 std::cout << "-------------------------------------------" << std::endl;
                 cacheAtual->printStatus();
-                // salva os resultados pro gráfico
-                idsLidos.push_back(idTexto);
-                temposMs.push_back(static_cast<double>(duracao.count()));
             }
             else {
                 std::cout << "\nERRO: Nao ha um cache ativo. Nao eh possivel carregar o texto." << std::endl;

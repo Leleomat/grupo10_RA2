@@ -8,7 +8,8 @@
 #include <map>
 #define NOMINMAX
 #include <windows.h>
-#include <iomanip>
+#include <iomanip>    // Para std::setw, std::left
+#include <algorithm>  // Para std::max_element
 
 // Includes para os tipos de cache
 #include "../main/FifoCache.h"
@@ -23,33 +24,156 @@ void setConsoleColorGreen() { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HA
 void resetConsoleColor() { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7); }
 #endif
 
-void mostrarGraficoASCII(const std::vector<int>& ids, const std::vector<double>& tempos) {
-    if (ids.empty() || tempos.empty()) {
-        std::cout << "Nenhum dado para plotar.\n";
-        return;
+void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resultados) {
+    if (todos_resultados.empty()) return;
+    std::vector<std::string> legendas;
+    std::vector<double> tempos_medios;
+
+    // 1. Extrai os dados, a legenda (ex: "FIFO-U1") e o tempo médio de cada teste
+    for (const auto& resultado_algo : todos_resultados) {
+        for (const auto& resultado_user : resultado_algo.resultados_por_usuario) {
+            std::string legenda = " " + resultado_algo.nome_algoritmo + "-U" + std::to_string(resultado_user.id_usuario);
+            legendas.push_back(legenda);
+
+            double tempo_total = 0;
+            for (const auto& s : resultado_user.solicitacoes) {
+                tempo_total += s.tempo_ms;
+            }
+            double tempo_medio = resultado_user.solicitacoes.empty() ? 0 : tempo_total / resultado_user.solicitacoes.size();
+            tempos_medios.push_back(tempo_medio);
+        }
     }
 
-    double maximoTempo = *std::max_element(tempos.begin(), tempos.end());
+    if (tempos_medios.empty()) return;
 
-    std::cout << "\n=== GRAFICO DE TEMPOS (ASCII COLORIDO) ===\n\n";
+    // 2. Desenha o gráfico ASCII
+    double maximoTempo = *std::max_element(tempos_medios.begin(), tempos_medios.end());
+    std::cout << "\n\n ~~~~~~~~~~~~~~~~~~ GRAFICO DE RESUMO DE PERFORMANCE ~~~~~~~~~~~~~~~~~~ \n\n";
 
-    for (size_t i = 0; i < ids.size(); ++i) {
-        int barra = static_cast<int>((tempos[i] / maximoTempo) * 50); // barra de até 50 caracteres
+    for (size_t i = 0; i < legendas.size(); ++i) {
+        int barra = 0;
+        if (maximoTempo > 0) {
+            barra = static_cast<int>((tempos_medios[i] / maximoTempo) * 50); // barra de até 50 caracteres
+        }
 
-        std::cout << "Texto " << std::setw(3) << ids[i] << " [" << std::setw(4) << static_cast<int>(tempos[i]) << "ms] | ";
-        double percentual = tempos[i] / maximoTempo;
-        if (percentual > 0.7) setConsoleColorRed();
-        else if (percentual > 0.4) setConsoleColorYellow();
-        else setConsoleColorGreen();
+        // Imprime a legenda e o valor
+        std::cout << std::left << std::setw(12) << legendas[i]
+            << "[" << std::right << std::setw(5) << static_cast<int>(tempos_medios[i]) << " ms] | ";
 
-        for (int j = 0; j < barra; ++j) std::cout << "#";
+        if (tempos_medios[i] > 200) {
+            setConsoleColorRed();
+        }
+        else if (tempos_medios[i] > 160) { // Se não for > 200, checa se é > 160
+            setConsoleColorYellow();
+        }
+        else { // Se não for nenhum dos anteriores, é <= 160
+            setConsoleColorGreen();
+        }
+
+        // Desenha a barra
+        for (int j = 0; j < barra; ++j) std::cout << "=";
         resetConsoleColor();
 
         std::cout << "\n";
     }
+    // Calcula e desenha as barras de média para cada algoritmo
+    std::cout << "\n ~~~~~~~~~~~~~~~~~~~~~~~~ MEDIAS POR ALGORITMO ~~~~~~~~~~~~~~~~~~~~~~~~ \n";
 
-    std::cout << "\n";
+    for (size_t i = 0; i < todos_resultados.size(); ++i) {
+        // Pega os 3 tempos de usuário para o algoritmo 'i' e calcula a média
+        double media_algo = (tempos_medios[i * 3] + tempos_medios[i * 3 + 1] + tempos_medios[i * 3 + 2]) / 3.0;
+
+        // Cria a legenda, ex: "FIFO-Media"
+        std::string legenda_algo = " " + todos_resultados[i].nome_algoritmo + "-Media";
+
+        // Usa a mesma lógica de desenho de barra de antes
+        int barra = 0;
+        if (maximoTempo > 0) {
+            barra = static_cast<int>((media_algo / maximoTempo) * 50);
+        }
+
+        std::cout << std::left << std::setw(12) << legenda_algo
+            << "[" << std::right << std::setw(5) << static_cast<int>(media_algo) << " ms] | ";
+
+        if (media_algo > 200) setConsoleColorRed();
+        else if (media_algo > 160) setConsoleColorYellow();
+        else setConsoleColorGreen();
+
+        for (int j = 0; j < barra; ++j) std::cout << "=";
+        resetConsoleColor();
+
+        std::cout << "\n";
+    }
+    std::cout << " Legenda: Verde (< 160ms) | Amarelo (160-200ms) | Vermelho (> 200ms)\n\n";
+
+    std::cout << " ~~~~~~~~~~~~~~~ GRAFICO DE HITS & MISSES POR ALGORITMO ~~~~~~~~~~~~~~~ \n";
+
+    std::vector<std::tuple<std::string, int, int>> dados_agregados; // {Nome, Total Hits, Total Misses}
+
+    for (const auto& resultado_algo : todos_resultados) {
+        int total_hits_algo = 0;
+        int total_misses_algo = 0;
+
+        for (const auto& resultado_user : resultado_algo.resultados_por_usuario) {
+            total_hits_algo += resultado_user.total_hits;
+            total_misses_algo += resultado_user.total_misses;
+        }
+
+        std::string nome = resultado_algo.nome_algoritmo;
+        std::cout << "\n------ [" << nome << "]\n";
+
+        // Escala: 1 "=" para cada 8 unidades (arredondado pra cima)
+        int barra_hits = std::ceil(total_hits_algo / 8.0);
+        int barra_misses = std::ceil(total_misses_algo / 8.0);
+
+        std::cout << " Hits Totais   [" << std::setw(4) << total_hits_algo << "] | ";
+        setConsoleColorGreen();
+        for (int i = 0; i < barra_hits; ++i) std::cout << "=";
+        resetConsoleColor();
+        std::cout << "\n";
+
+        std::cout << " Misses Totais [" << std::setw(4) << total_misses_algo << "] | ";
+        setConsoleColorRed();
+        for (int i = 0; i < barra_misses; ++i) std::cout << "=";
+        resetConsoleColor();
+        std::cout << "\n\n";
+
+        // Usuário do mesmo algoritmo
+        for (const auto& resultado_user : resultado_algo.resultados_por_usuario) {
+            
+            std::string nome_modelo;
+            if (resultado_user.id_usuario == 1) nome_modelo = "Modelo Puro";
+            else if (resultado_user.id_usuario == 2) nome_modelo = "Modelo Poisson";
+            else nome_modelo = "Modelo Ponderado";
+
+            int hits_usuario = resultado_user.total_hits;
+            int misses_usuario = resultado_user.total_misses;
+
+            // Escala: 1 "=" para cada 4 unidades (arredondado pra cima)
+            int barra_hits_user = std::ceil(hits_usuario / 4.0);
+            int barra_misses_user = std::ceil(misses_usuario / 4.0);
+            
+            std::cout << "  [User " << resultado_user.id_usuario << " - " << nome_modelo << "]\n";
+
+            // Hits
+            std::cout << "       Hits    [" << std::setw(4) << hits_usuario << "] | ";
+            setConsoleColorGreen();
+            for (int i = 0; i < barra_hits_user; ++i) std::cout << "=";
+            resetConsoleColor();
+            std::cout << "\n";
+
+            // Misses
+            std::cout << "       Misses  [" << std::setw(4) << misses_usuario << "] | ";
+            setConsoleColorRed();
+            for (int i = 0; i < barra_misses_user; ++i) std::cout << "=";
+            resetConsoleColor();
+            std::cout << "\n";
+        }
+        
+    }
+    std::cout << "\n-------------------------------------------------------------------------\n";
 }
+
 
 // Alias para facilitar
 using CachePtr = std::shared_ptr<ICache>;
@@ -84,7 +208,7 @@ ResultadoUsuario simularUsuario(CachePtr cache, int usuarioId) {
     resultado.id_usuario = usuarioId;
 
     std::mt19937 rng(std::random_device{}());
-    const int numSolicitacoes = 100; // 100 por Usuario por algoritmo para teste
+    const int numSolicitacoes = 200; // 200 por Usuario por algoritmo
 
     for (int i = 0; i < numSolicitacoes; ++i) {
         std::cout << "\n~~~~~~~~~~ [ALGORITMO: " << cache->getNome() << "] - [USER " << usuarioId << "] - Solicitacao numero " << (i + 1) << " ~~~~~~~~~~";
@@ -143,7 +267,7 @@ void exibirRelatorioFinal(const std::vector<ResultadoAlgoritmo>& todos_resultado
                     << " // " << (s.foi_hit ? "HIT" : "MISS") << "]" << std::endl;
             }
 
-            // Adicionando o sumário por usuário que você tinha antes
+            // Adicionando o sumário por usuário
             double tempo_total = 0;
             for (const auto& s : resultado_user.solicitacoes) {
                 tempo_total += s.tempo_ms;
@@ -234,15 +358,16 @@ CachePtr executarSimulacao() {
         todos_os_resultados.push_back(resultado_algo_atual);
     }
 
-    // Ao final de TUDO, chama a função que imprime o relatório
+    // Imprime o relatório
     exibirRelatorioFinal(todos_os_resultados);
+    exibirGraficoResumoASCII(todos_os_resultados);
 
-    // --- ALTERAÇÃO 3: LÓGICA PARA DECIDIR O VENCEDOR BASEADO NO MENOR TEMPO MÉDIO ---
+    // Vencedor baseado no tempo médio
     std::string melhor_algoritmo = "";
     double menor_tempo_medio = -1.0;
 
     for (const auto& par : performance) {
-        std::cout << "\n\n[ANALISE] Tempo medio final para " << par.first << ": " << par.second << " ms" << std::endl;
+        std::cout << "[ANALISE] Tempo medio final para " << par.first << ": " << par.second << " ms" << std::endl;
         if (menor_tempo_medio < 0 || par.second < menor_tempo_medio) {
             menor_tempo_medio = par.second;
             melhor_algoritmo = par.first;
