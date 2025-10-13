@@ -60,3 +60,7 @@ Dentro da classe LruCache, existe a função printstatus() responsável por most
 CachePtr cacheAtual = std::make_shared<LruCache>();
 ```
 Com isso, o programa iniciará diretamente com o algoritmo LRU para ser feito os testes. Inicialmente, são colocados vários IDs de textos aleatórios até preencher o CACHE com o limite de 10. Após, e feito a leitura de alguns que já estão no CACHE, e sempre após cada iteração é mostrado a lista de ordem de uso. Com a lista cheia, ao digitar o ID de algum texto que antes não estava no cache, é feito um CACHE MISS, removendo o texto com o ID último da lista de uso e adicionando o novo no começo. 
+
+## Estrutura ICache 
+A estrutura é relativamente simples porém essencial, ela é a classe genérica que é implementada nos algoritmos que herdam e implementam seus métodos, como o FIFO, Random Replacement e LRU, implementando o polimorfismo.
+
