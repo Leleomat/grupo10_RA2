@@ -68,7 +68,7 @@ public:
 
     // Função que retorna o nome padrão do algortimo de cache utilizado
     std::string getNome() const override {
-        return "LRU";
+        return "Least Recently Used (LRU)";
     }
 
     // Função que mostra o status atual do cache 

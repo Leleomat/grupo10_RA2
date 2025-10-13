@@ -54,7 +54,7 @@ public:
 
     std::string getNome() const override {
         // Retorna o nome do algoritmo de cache.
-        return "FIFO";
+        return "First-In First-Out (FIFO)";
     }
 
     void printStatus() const override {
