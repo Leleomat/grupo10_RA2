@@ -26,7 +26,7 @@ Este algoritmo faz a implementação do Least Recently Used (LRU). A ideia centr
 Como uma opção da otimização do tempo, foi utilizado uma estrutura de busca O(1) através de um Hash Map com um ponteiro para a lista da ordem de uso. Desse modo, a lista de ordem de uso sempre estará diretamente ligada ao mapeamento Hash, reduzindo a complexidade da pesquisa.  
 
 ### Algoritmo LRU: Teste
-Dentro da classe LruCache, existe a função printstatus() responsável por mostrar ao usuário após cada intereação com o CACHE como está a situação da lista de ordem de uso. Desse modo, para teste do algoritmo, é alterado a sequência do código para que ao invés de iniciar no modo simulação, acesse diretamente o algoritmo LRU. Para fazer isso, adicione após a linha 26 da main o seguinte código:
+Dentro da classe LruCache, existe a função printstatus() responsável por mostrar ao usuário após cada intereação com o CACHE como está a situação da lista de ordem de uso. Desse modo, para teste do algoritmo, é alterado a sequência do código para que ao invés de iniciar no modo simulação, acesse diretamente o algoritmo LRU. Para fazer isso, adicione no início da função main() do arquivo da main o seguinte código:
 ```
 CachePtr cacheAtual = std::make_shared<LruCache>();
 ```
