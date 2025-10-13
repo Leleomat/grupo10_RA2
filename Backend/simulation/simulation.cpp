@@ -7,12 +7,50 @@
 #include <memory>
 #include <numeric>
 #include <map>
+#define NOMINMAX
+#include <windows.h>
+#include <iomanip>
 
 // Includes para os tipos de cache
 #include "../main/FifoCache.h"
 #include "../main/LruCache.h"
 #include "../main/RRCache.h"
 #include "../core/ICache.h"
+
+#ifdef _WIN32
+void setConsoleColorRed() { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12); }
+void setConsoleColorYellow() { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 14); }
+void setConsoleColorGreen() { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 10); }
+void resetConsoleColor() { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7); }
+#endif
+
+void mostrarGraficoASCII(const std::vector<int>& ids, const std::vector<double>& tempos) {
+    if (ids.empty() || tempos.empty()) {
+        std::cout << "Nenhum dado para plotar.\n";
+        return;
+    }
+
+    double maximoTempo = *std::max_element(tempos.begin(), tempos.end());
+
+    std::cout << "\n=== GRAFICO DE TEMPOS (ASCII COLORIDO) ===\n\n";
+
+    for (size_t i = 0; i < ids.size(); ++i) {
+        int barra = static_cast<int>((tempos[i] / maximoTempo) * 50); // barra de até 50 caracteres
+
+        std::cout << "Texto " << std::setw(3) << ids[i] << " [" << std::setw(4) << static_cast<int>(tempos[i]) << "ms] | ";
+        double percentual = tempos[i] / maximoTempo;
+        if (percentual > 0.7) setConsoleColorRed();
+        else if (percentual > 0.4) setConsoleColorYellow();
+        else setConsoleColorGreen();
+
+        for (int j = 0; j < barra; ++j) std::cout << "#";
+        resetConsoleColor();
+
+        std::cout << "\n";
+    }
+
+    std::cout << "\n";
+}
 
 // Alias para facilitar
 using CachePtr = std::shared_ptr<ICache>;
@@ -53,11 +91,11 @@ ResultadoUsuario simularUsuario(CachePtr cache, int usuarioId) {
         int idTexto;
         std::string modo_sorteio;
 
-        if (i < numSolicitacoes / 3) {
+        if (usuarioId == 1) {
             idTexto = aleatorioPuro(1, 100, rng);
             modo_sorteio = "Puro";
         }
-        else if (i < (numSolicitacoes * 2) / 3) {
+        else if (usuarioId == 2) {
             idTexto = aleatorioPoisson(50.0, rng);
             if (idTexto < 1) idTexto = 1; if (idTexto > 100) idTexto = 100;
             modo_sorteio = "Poisson";
@@ -137,7 +175,6 @@ void exibirRelatorioFinal(const std::vector<ResultadoAlgoritmo>& todos_resultado
         }
     }
 }
-
 
 // Função principal do simulador
 void executarSimulacao() {

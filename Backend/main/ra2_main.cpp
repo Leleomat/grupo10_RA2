@@ -13,45 +13,7 @@
 #include <chrono>
 #include <iomanip>
 #include <algorithm>
-#define NOMINMAX
 #include <windows.h>
-
-
-#ifdef _WIN32
-#include <windows.h>
-void setConsoleColorRed() { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12); }
-void setConsoleColorYellow() { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 14); }
-void setConsoleColorGreen() { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 10); }
-void resetConsoleColor() { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7); }
-#endif
-
-void mostrarGraficoASCII(const std::vector<int>& ids, const std::vector<double>& tempos) {
-    if (ids.empty() || tempos.empty()) {
-        std::cout << "Nenhum dado para plotar.\n";
-        return;
-    }
-
-    double maximoTempo = *std::max_element(tempos.begin(), tempos.end());
-
-    std::cout << "\n=== GRAFICO DE TEMPOS (ASCII COLORIDO) ===\n\n";
-
-    for (size_t i = 0; i < ids.size(); ++i) {
-        int barra = static_cast<int>((tempos[i] / maximoTempo) * 50); // barra de até 50 caracteres
-
-        std::cout << "Texto " << std::setw(3) << ids[i] << " [" << std::setw(4) << static_cast<int>(tempos[i]) << "ms] | ";
-        double percentual = tempos[i] / maximoTempo;
-        if (percentual > 0.7) setConsoleColorRed();
-        else if (percentual > 0.4) setConsoleColorYellow();
-        else setConsoleColorGreen();
-
-        for (int j = 0; j < barra; ++j) std::cout << "#";
-        resetConsoleColor();
-
-        std::cout << "\n";
-    }
-
-    std::cout << "\n";
-}
 
 void mostrarTexto(const Texto& texto) {
     std::cout << "\n--------------------- INICIO DO TEXTO ---------------------\n";
@@ -121,14 +83,5 @@ int main() {
             std::cout << "\nNumero de texto invalido. Por favor, escolha um numero entre 1 e 100.\n" << std::endl;
         }
     }
-
-    if (!idsLidos.empty()) {
-        mostrarGraficoASCII(idsLidos, temposMs);
-    }
-    else {
-        std::cout << "Nenhum texto foi carregado, sem gráfico a exibir.\n";
-    }
-
-
     return 0;
 }
