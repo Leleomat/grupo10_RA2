@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{7114e1dc-5c7c-4a6b-820e-2614585cc4cd}</ProjectGuid>
+    <ProjectGuid>{e58c4db0-5ac4-49e5-9a14-8828c77bcdd7}</ProjectGuid>
     <RootNamespace>simulation</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -40,7 +40,7 @@
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
@@ -102,7 +102,6 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -127,11 +126,11 @@
     <ClCompile Include="simulation.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\algorithms\algorithms.vcxproj">
-      <Project>{39e52f6b-d72e-4409-a7a6-93e49a2cc8d1}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\core\core.vcxproj">
       <Project>{b7feb93d-0b74-4f39-8a0c-549a7c5e2437}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\main\main.vcxproj">
+      <Project>{ceb2e251-f36d-4081-8321-6fd13b8be0fd}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
