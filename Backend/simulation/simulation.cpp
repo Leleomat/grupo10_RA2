@@ -91,7 +91,7 @@ void exibirRelatorioFinal(const std::vector<ResultadoAlgoritmo>& todos_resultado
     std::cout << "=== RELATORIO FINAL DA SIMULACAO ===" << std::endl;
 
     for (const auto& resultado_algo : todos_resultados) {
-        std::cout << "\n=========================================================\n";
+        std::cout << "=========================================================\n";
         std::cout << "[" << resultado_algo.nome_algoritmo << "]" << std::endl;
 
         // 1. Imprime o log detalhado de cada usuário
@@ -114,6 +114,7 @@ void exibirRelatorioFinal(const std::vector<ResultadoAlgoritmo>& todos_resultado
             std::cout << " -> Total Hits: " << resultado_user.total_hits << " | Total Misses: " << resultado_user.total_misses << std::endl;
             std::cout << " -> Tempo medio por solicitacao: " << tempo_total / resultado_user.solicitacoes.size() << " ms" << std::endl;
         }
+
         // 2. Calcula e imprime o resumo de hits/misses por arquivo
         std::map<int, std::pair<int, int>> stats_por_arquivo; // id -> {hits, misses}
         for (const auto& resultado_user : resultado_algo.resultados_por_usuario) {
@@ -140,13 +141,19 @@ void exibirRelatorioFinal(const std::vector<ResultadoAlgoritmo>& todos_resultado
 
 
 // Função principal do simulador
-void executarSimulacao() {
+CachePtr executarSimulacao() {
     std::vector<ResultadoAlgoritmo> todos_os_resultados;
     const std::vector<std::string> nomesCache = { "FIFO", "LRU", "RR" };
+    
+    // Mapa para guardar o desempenho de cada algoritmo (nome -> total de misses)
+    std::map<std::string, double> performance; // mapeia nome -> tempo médio em ms
 
     for (const auto& nome : nomesCache) {
         ResultadoAlgoritmo resultado_algo_atual;
         resultado_algo_atual.nome_algoritmo = nome;
+        
+        // Vetor para guardar os tempos médios de cada um dos 3 usuários
+        std::vector<double> tempos_medios_usuarios;
 
         for (int usuario = 1; usuario <= 3; ++usuario) {
             CachePtr cache;
@@ -155,10 +162,37 @@ void executarSimulacao() {
             else if (nome == "RR") cache = std::make_shared<RRCache>();
 
             if (cache) {
+                ResultadoUsuario res_user = simularUsuario(cache, usuario);
+                
+                // Calcula o tempo total e médio para este usuário
+                double tempo_total_usuario = 0;
+                for (const auto& s : res_user.solicitacoes) {
+                    tempo_total_usuario += s.tempo_ms;
+                }
+                
+                // Calcula o tempo médio para ESTE usuário
+                double tempo_medio_usuario = 0;
+                if (!res_user.solicitacoes.empty()) {
+                    tempo_medio_usuario = tempo_total_usuario / res_user.solicitacoes.size();
+                }
+                // Guarda o tempo médio deste usuário no vetor
+                tempos_medios_usuarios.push_back(tempo_medio_usuario);
+
                 // Roda a simulação e guarda o resultado do usuário
-                resultado_algo_atual.resultados_por_usuario.push_back(simularUsuario(cache, usuario));
+                resultado_algo_atual.resultados_por_usuario.push_back(res_user);
             }
         }
+        // 1. Soma os 3 tempos médios dos usuários
+        double soma_dos_medios = std::accumulate(tempos_medios_usuarios.begin(), tempos_medios_usuarios.end(), 0.0);
+        // 2. Divide por 3 para obter a média geral do algoritmo
+        double media_geral_algoritmo = 0;
+        if (!tempos_medios_usuarios.empty()) {
+            media_geral_algoritmo = soma_dos_medios / tempos_medios_usuarios.size();
+        }
+
+        // Guarda a performance final do algoritmo
+        performance[nome] = media_geral_algoritmo;
+
         // Guarda o resultado consolidado do algoritmo
         todos_os_resultados.push_back(resultado_algo_atual);
     }
@@ -166,8 +200,27 @@ void executarSimulacao() {
     // Ao final de TUDO, chama a função que imprime o relatório
     exibirRelatorioFinal(todos_os_resultados);
 
-    std::cout << "\n\n=== Simulacao concluida ===\n";
-    std::cout << "Pressione Enter para voltar ao menu principal..." << std::endl;
-    std::cin.get(); // Pausa para o usuário ler o relatório
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    // --- ALTERAÇÃO 3: LÓGICA PARA DECIDIR O VENCEDOR BASEADO NO MENOR TEMPO MÉDIO ---
+    std::string melhor_algoritmo = "";
+    double menor_tempo_medio = -1.0;
+
+    for (const auto& par : performance) {
+        std::cout << "\n\n[ANALISE] Tempo medio final para " << par.first << ": " << par.second << " ms" << std::endl;
+        if (menor_tempo_medio < 0 || par.second < menor_tempo_medio) {
+            menor_tempo_medio = par.second;
+            melhor_algoritmo = par.first;
+        }
+    }
+
+    std::cout << "\n===================================================================\n";
+    std::cout << ">>> VENCEDOR DA SIMULACAO: " << melhor_algoritmo << " (com tempo medio de " << menor_tempo_medio << " ms) <<<" << std::endl;
+    std::cout << "===================================================================\n";
+
+    // --- Retorna uma nova instância do algoritmo vencedor ---
+    if (melhor_algoritmo == "FIFO") return std::make_shared<FifoCache>();
+    if (melhor_algoritmo == "LRU") return std::make_shared<LruCache>();
+    if (melhor_algoritmo == "RR") return std::make_shared<RRCache>();
+
+    return nullptr;
+
 }

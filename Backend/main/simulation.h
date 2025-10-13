@@ -2,6 +2,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include "../core/ICache.h" // Precisa saber o que é CachePtr
 
 // Estrutura para guardar os dados de uma única solicitação de texto
 struct Solicitacao {
@@ -26,4 +27,4 @@ struct ResultadoAlgoritmo {
 };
 
 // Função principal que o main.cpp irá chamar
-void executarSimulacao();
+CachePtr executarSimulacao();
