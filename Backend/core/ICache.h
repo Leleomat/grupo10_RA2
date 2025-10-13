@@ -10,6 +10,7 @@ public:
     virtual Texto getTexto(int textId) = 0; // O "= 0" torna a função "pura virtual", obrigando as classes filhas a implementá-la.
     virtual void printStatus() const {}
     virtual std::string getNome() const = 0;
+    virtual bool foiHit() const { return false; } // Default false
 };
 
 using CachePtr = std::shared_ptr<ICache>;

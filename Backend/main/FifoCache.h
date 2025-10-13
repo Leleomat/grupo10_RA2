@@ -1,6 +1,6 @@
 #pragma once
 #include "../core/ICache.h"
-#include "../core/core.h"  
+#include "../core/core.h"
 #include <unordered_map>
 #include <list>
 #include <string>
@@ -8,28 +8,29 @@
 #include <sstream>
 #include <iostream>
 
-
 class FifoCache : public ICache {
 private:
     std::unordered_map<int, std::string> cache; // Armazena os textos no formato id -> conteúdo.
     std::list<int> ordemInsercao;               // Guarda a sequência em que os textos foram inseridos.
     static constexpr size_t MAX_CACHE = 10;     // Define o tamanho máximo do cache (10 textos).
+    bool ultimoHit = false;
 
 public:
-
     // Construtor padrão (nenhuma inicialização especial).
     FifoCache() = default;
 
     std::string getTexto(int id) override {
         // Verifica se o texto solicitado já está no cache.
         if (cache.find(id) != cache.end()) {
-            std::cout << "\n\n" << "[CACHE HIT] Texto no cache..." << "\n\n";
+            std::cout << "\n\n" << "[CACHE HIT] TEXTO NO CACHE - FIFO" << "\n\n";
+            ultimoHit = true;
             // Caso esteja, imprime mensagem de acerto e retorna o texto da memória.
             return cache[id];
         }
 
         // Caso contrário, o texto não está no cache.
         std::cout << "\n[CACHE MISS] O texto " << id << " nao foi encontrado. Solicitando ao Core..." << std::endl;
+        ultimoHit = false;
 
         // Se o cache já estiver cheio, remove o texto mais antigo.
         if (cache.size() == MAX_CACHE) {
@@ -38,7 +39,6 @@ public:
             ordemInsercao.pop_front();               // Remove o ID da lista de ordem.
             std::cout << "[CACHE INFO] Cache cheio. Removendo o texto " << idRemover << " (FIFO)." << std::endl;
         }
-
         // Carrega o texto solicitado do disco.
         std::string textoDoDisco = Disco::lerTextoDoDisco(id);
 
@@ -46,7 +46,7 @@ public:
         cache[id] = textoDoDisco;
         ordemInsercao.push_back(id);
 
-        std::cout << "\n[CACHE] O texto " << id << " foi adicionado ao Cache." << std::endl;
+        std::cout << "[CACHE] O texto " << id << " foi adicionado ao Cache via FIFO." << std::endl;
 
         // Retorna o conteúdo do texto (seja ele novo ou já existente).
         return cache[id];
@@ -59,13 +59,15 @@ public:
 
     void printStatus() const override {
         // Exibe o estado atual do cache no console.
-        std::cout << "\n--- STATUS DO CACHE FIFO ---" << std::endl;
+        std::cout << "\n------------------- STATUS DO CACHE FIFO ------------------" << std::endl;
         std::cout << "Cache FIFO atual (do mais antigo ao mais novo):\n";
 
         // Percorre a lista na ordem de inserção e mostra os IDs armazenados.
         for (int id : ordemInsercao)
-            std::cout << " - ID: " << id << "\n";
+            std::cout << " - Texto Numero " << id << "\n";
 
-        std::cout << "---------------------------\n" << std::endl;
+        std::cout << "-----------------------------------------------------------\n" << std::endl;
     }
+    bool foiHit() const override { return ultimoHit; } // ultimoHit é uma variável booleana que você seta em getTexto()
+
 };
