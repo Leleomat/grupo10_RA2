@@ -11,7 +11,7 @@ namespace Disco {
     Texto lerTextoDoDisco(int textId) {
         std::string path = "../../texts/" + std::to_string(textId) + ".txt";
 
-        std::cout << "\n[DISCO LENTO] Acessando o disco para ler o arquivo: " << path << "..." << std::endl;
+        std::cout << "[DISCO LENTO] Acessando o disco para ler o arquivo: " << path << "..." << std::endl;
 
         // --- SIMULAÇÃO DE LENTIDÃO ---
         // Pausa a execução por 200 milissegundos para simular um disco lento.

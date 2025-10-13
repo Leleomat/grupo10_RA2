@@ -21,7 +21,7 @@ private:
     // Lista que mantém a ordem de uso
     //  - início (front) = mais recentemente usado
     //  - final  (back)  = menos recentemente usado (candidato à remoção)
-    std::list<int> ordemUso; 
+    std::list<int> ordemUso;
     static constexpr size_t MAX_CACHE = 10; // Tamanho máximo do cache. static constexpr => constante em tempo de compilação.
     bool ultimoHit = false;
 
@@ -61,11 +61,11 @@ public:
         ordemUso.push_front(id); // Insere na primeira posição da lista de ordem de uso o id do novo texto adicionado ao cache
         cache[id] = { textoDoDisco, ordemUso.begin() }; // Insere no cache na posição do id do texto, o valor do texto carregado e um ponteiro a primeira posição da lista da ordem de uso 
 
-        std::cout << "\n[CACHE] O texto " << id << " foi adicionado ao Cache via LRU." << std::endl;
+        std::cout << "[CACHE] O texto " << id << " foi adicionado ao Cache via LRU." << std::endl;
 
         return cache[id].first; // Retorna o texto recém inserido
     }
-    
+
     // Função que retorna o nome padrão do algortimo de cache utilizado
     std::string getNome() const override {
         return "LRU";
@@ -82,5 +82,3 @@ public:
     bool foiHit() const override { return ultimoHit; } // ultimoHit é uma variável booleana que você seta em getTexto()
 
 };
-
-
