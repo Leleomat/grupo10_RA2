@@ -25,6 +25,7 @@ private:
 
     //Gerador aleatório
     std::mt19937 rng{ std::random_device{}() };
+    bool ultimoHit = false;
 
 public:
     RRCache() = default;
@@ -38,15 +39,16 @@ public:
         // it aponta para elemento se existe, cache.end() caso contrário.
 
         if (it != cache.end()) {
-            std::cout << "\n\n" << "[CACHE HIT] Texto no cache..." << "\n\n";
+            std::cout << "\n\n" << "[CACHE HIT] TEXTO NO CACHE - RR" << "\n\n";
             // Log informativo — indica cache hit.
+            ultimoHit = true;
             return it->second;
             // Retorna diretamente a string armazenada (não lê do disco).
         }
 
         std::cout << "\n[CACHE MISS] O texto " << id << " nao foi encontrado. Solicitando ao Core..." << std::endl;
         // Log de miss — aqui seria o local para incrementar contador de miss/time measurement.
-
+        ultimoHit = false;
         // Se cache cheio, remove um elemento aleatório
         if (cache.size() == MAX_CACHE) {
             // Escolhe índice aleatório no intervalo válido [0, idsCache.size()-1]
@@ -96,4 +98,6 @@ public:
         std::cout << "------------------------------------------------------------\n" << std::endl;
         // Imprime o estado atual do cache (útil para debug). Note que a ordem não tem significado semântico.
     }
+    bool foiHit() const override { return ultimoHit; } // ultimoHit é uma variável booleana que você seta em getTexto()
+
 };

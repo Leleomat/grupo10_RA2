@@ -23,6 +23,7 @@ private:
     //  - final  (back)  = menos recentemente usado (candidato à remoção)
     std::list<int> ordemUso; 
     static constexpr size_t MAX_CACHE = 10; // Tamanho máximo do cache. static constexpr => constante em tempo de compilação.
+    bool ultimoHit = false;
 
 public:
     LruCache() = default; // Construtor padrão da classe LruCache
@@ -33,7 +34,7 @@ public:
         auto itemHM = cache.find(id); // Procura no mapa Hash se encontra a chave id. .find() retorna o item solicitado do hash map
         if (itemHM != cache.end()) { // cache.end() é o iterador para caso não exista a chave id no mapa Hash. Se não existir, é um CACHE MISS
             std::cout << "\n\n[TEXTO NO CACHE - LRU HIT]\n\n";
-
+            ultimoHit = true;
             // Atualiza a ordem de uso: move o item para o topo da lista
             ordemUso.erase(itemHM->second.second); // .erase() remove da lista da ordem de uso o id encontrado. Utiliza o ponteiro do iterador do mapa Hash
             ordemUso.push_front(id); // Coloca o id do texto na primeira posição da lista de ordem de uso
@@ -44,7 +45,7 @@ public:
 
         // CACHE MISS, ou seja, não encontrou no map o id do texto
         std::cout << "\n[CACHE MISS - LRU] O texto " << id << " nao foi encontrado. Solicitando ao Core..." << std::endl;
-
+        ultimoHit = false;
         // Se cache cheio, remover o menos recentemente usado (final da lista)
         if (cache.size() == MAX_CACHE) { // .size() verifica o tamanho do cache (quantos textos estão armazenados)
             int idRemover = ordemUso.back(); // Armazena na variável idRemover o elemento da última posição da lista (o menos usado)
@@ -78,5 +79,8 @@ public:
             std::cout << " - Texto Numero " << id << "\n";
         std::cout << "-----------------------------------------------------------\n" << std::endl;
     }
+    bool foiHit() const override { return ultimoHit; } // ultimoHit é uma variável booleana que você seta em getTexto()
+
 };
+
 

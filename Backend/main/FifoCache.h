@@ -14,6 +14,7 @@ private:
     std::unordered_map<int, std::string> cache; // Armazena os textos no formato id -> conteúdo.
     std::list<int> ordemInsercao;               // Guarda a sequência em que os textos foram inseridos.
     static constexpr size_t MAX_CACHE = 10;     // Define o tamanho máximo do cache (10 textos).
+    bool ultimoHit = false;
 
 public:
 
@@ -23,13 +24,15 @@ public:
     std::string getTexto(int id) override {
         // Verifica se o texto solicitado já está no cache.
         if (cache.find(id) != cache.end()) {
-            std::cout << "\n\n" << "[CACHE HIT] Texto no cache..." << "\n\n";
+            std::cout << "\n\n" << "[CACHE HIT] TEXTO NO CACHE - FIFO" << "\n\n";
+            ultimoHit = true;
             // Caso esteja, imprime mensagem de acerto e retorna o texto da memória.
             return cache[id];
         }
 
         // Caso contrário, o texto não está no cache.
         std::cout << "\n[CACHE MISS] O texto " << id << " nao foi encontrado. Solicitando ao Core..." << std::endl;
+        ultimoHit = false;
 
         // Se o cache já estiver cheio, remove o texto mais antigo.
         if (cache.size() == MAX_CACHE) {
@@ -68,4 +71,6 @@ public:
 
         std::cout << "-----------------------------------------------------------\n" << std::endl;
     }
+    bool foiHit() const override { return ultimoHit; } // ultimoHit é uma variável booleana que você seta em getTexto()
+
 };
