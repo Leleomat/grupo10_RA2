@@ -18,6 +18,7 @@
 #include "../main/RRCache.h"
 #include "../core/ICache.h"
 
+// Define as funções de mudança de cor do console
 #ifdef _WIN32
 void setConsoleColorRed() { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 12); }
 void setConsoleColorYellow() { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 14); }
@@ -25,42 +26,45 @@ void setConsoleColorGreen() { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HA
 void resetConsoleColor() { SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 7); }
 #endif
 
+// Função que recebe um vetor com os resultados dos algoritmos e imprime no console gráficos ASCII resumidos de performance e de hits/misses
 void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resultados) {
-    if (todos_resultados.empty()) return;
-    std::vector<std::string> legendas;
-    std::vector<double> tempos_medios;
+    if (todos_resultados.empty()) return; // Se não há resultados, sai da função imediatamente
+    std::vector<std::string> legendas; // Vetor para armazenar legendas (ex: " FIFO-U1") para cada usuário registrado
+    std::vector<double> tempos_medios; // Vetor paralelo a 'legendas' que armazena o tempo médio (em us) por legenda/usuário
 
     // 1. Extrai os dados, a legenda (ex: "FIFO-U1") e o tempo médio de cada teste
-    for (const auto& resultado_algo : todos_resultados) {
-        for (const auto& resultado_user : resultado_algo.resultados_por_usuario) {
-            std::string legenda = " " + resultado_algo.nome_algoritmo + "-U" + std::to_string(resultado_user.id_usuario);
-            legendas.push_back(legenda);
+    for (const auto& resultado_algo : todos_resultados) { // Percorre o resultado de cada algoritmo de cache
+        for (const auto& resultado_user : resultado_algo.resultados_por_usuario) { // Para cada algoritmo, percorre os resultados por usuário
+            std::string legenda = " " + resultado_algo.nome_algoritmo + "-U" + std::to_string(resultado_user.id_usuario); // Constrói uma legenda combinando o nome do algoritmo e o id do usuário, ex: " FIFO-U1"
+            legendas.push_back(legenda); // Armazena a legenda no vetor de legendas
 
             double tempo_total = 0;
-            for (const auto& s : resultado_user.solicitacoes) {
-                tempo_total += s.tempo_us;
+            for (const auto& s : resultado_user.solicitacoes) { // Percorre todas as solicitações do usuário
+                tempo_total += s.tempo_us; // Soma o tempo (em microsegundos) de cada solicitação ao total
             }
-            double tempo_medio = resultado_user.solicitacoes.empty() ? 0 : tempo_total / resultado_user.solicitacoes.size();
-            tempos_medios.push_back(tempo_medio);
+            double tempo_medio = resultado_user.solicitacoes.empty() ? 0 : tempo_total / resultado_user.solicitacoes.size(); // Calcula o tempo médio: se não houver solicitações, define como 0 para evitar divisão por zero
+            tempos_medios.push_back(tempo_medio); // Guarda o tempo médio no vetor paralelo a 'legendas'
         }
     }
 
-    if (tempos_medios.empty()) return;
+    if (tempos_medios.empty()) return; // Verifica novamente: se não há tempos médios (por algum motivo), sai
 
     // 2. Desenha o gráfico ASCII
-    double maximoTempo = *std::max_element(tempos_medios.begin(), tempos_medios.end());
+    double maximoTempo = *std::max_element(tempos_medios.begin(), tempos_medios.end()); // Encontra o maior tempo médio para usar como referência ao dimensionar as barras (normalização)
     std::cout << "\n\n ~~~~~~~~~~~~~~~~~~ GRAFICO DE RESUMO DE PERFORMANCE ~~~~~~~~~~~~~~~~~~ \n\n";
 
-    for (size_t i = 0; i < legendas.size(); ++i) {
+    for (size_t i = 0; i < legendas.size(); ++i) { // Percorre cada legenda/tempo médio para desenhar a linha do gráfico
         int barra = 0;
         if (maximoTempo > 0) {
+            // Calcula quantos caracteres "=" a barra vai ter proporcionalmente a 50 caracteres com base no tempo médio relativo ao máximo.
             barra = static_cast<int>((tempos_medios[i] / maximoTempo) * 50); // barra de até 50 caracteres
         }
-
+        
         // Imprime a legenda e o valor
         std::cout << std::left << std::setw(12) << legendas[i]
-            << "[" << std::right << std::setw(5) << static_cast<int>(tempos_medios[i]) << " ms] | ";
+            << "[" << std::right << std::setw(5) << static_cast<int>(tempos_medios[i]) << " us] | "; // Imprime a legenda alinhada à esquerda com largura 12, e em seguida o tempo médio convertido para inteiro e alinhado à direita em um campo de largura 5.
 
+        // Ajusta a cor do texto/console dependendo do valor do tempo médio: vermelho para muito alto, amarelo para médio, verde para aceitável.
         if (tempos_medios[i] > 8000) {
             setConsoleColorRed();
         }
@@ -71,16 +75,16 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
             setConsoleColorGreen();
         }
 
-        // Desenha a barra
-        for (int j = 0; j < barra; ++j) std::cout << "=";
-        resetConsoleColor();
+        // Desenha a barra 
+        for (int j = 0; j < barra; ++j) std::cout << "="; // Repete o caractere "=" 'barra' vezes para desenhar a barra horizontal
+        resetConsoleColor(); // Restaura a cor padrão do console
 
         std::cout << "\n";
     }
     // Calcula e desenha as barras de média para cada algoritmo
     std::cout << "\n ~~~~~~~~~~~~~~~~~~~~~~~~ MEDIAS POR ALGORITMO ~~~~~~~~~~~~~~~~~~~~~~~~ \n";
 
-    for (size_t i = 0; i < todos_resultados.size(); ++i) {
+    for (size_t i = 0; i < todos_resultados.size(); ++i) { // Percorre cada algoritmo de cache
         // Pega os 3 tempos de usuário para o algoritmo 'i' e calcula a média
         double media_algo = (tempos_medios[i * 3] + tempos_medios[i * 3 + 1] + tempos_medios[i * 3 + 2]) / 3.0;
 
@@ -90,32 +94,32 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
         // Usa a mesma lógica de desenho de barra de antes
         int barra = 0;
         if (maximoTempo > 0) {
-            barra = static_cast<int>((media_algo / maximoTempo) * 50);
+            barra = static_cast<int>((media_algo / maximoTempo) * 50); // Normaliza a barra em relação ao mesmo 'maximoTempo' usado anteriormente
         }
 
         std::cout << std::left << std::setw(12) << legenda_algo
-            << "[" << std::right << std::setw(5) << static_cast<int>(media_algo) << " us] | ";
+            << "[" << std::right << std::setw(5) << static_cast<int>(media_algo) << " us] | "; // Imprime a legenda da média com o valor médio
 
+        // Define a cor conforme o valor da média do algoritmo
         if (media_algo > 8000) setConsoleColorRed();
         else if (media_algo > 5000) setConsoleColorYellow();
         else setConsoleColorGreen();
 
-        for (int j = 0; j < barra; ++j) std::cout << "=";
-        resetConsoleColor();
+        for (int j = 0; j < barra; ++j) std::cout << "="; // Desenha a barra da média
+        resetConsoleColor();  // Restaura cor depois da barra
 
         std::cout << "\n";
     }
-    std::cout << "\n Legenda: Verde (< 5000us) | Amarelo (5000-8000us) | Vermelho (> 8000us)\n\n";
+    std::cout << "\n Legenda: Verde (< 5000us) | Amarelo (5000-8000us) | Vermelho (> 8000us)\n\n"; // Imprime a legenda explicando o código de cores
 
     std::cout << " ~~~~~~~~~~~~~~~ GRAFICO DE HITS & MISSES POR ALGORITMO ~~~~~~~~~~~~~~~ \n";
 
-    std::vector<std::tuple<std::string, int, int>> dados_agregados; // {Nome, Total Hits, Total Misses}
-
-    for (const auto& resultado_algo : todos_resultados) {
+    for (const auto& resultado_algo : todos_resultados) { // Percorre cada alogoritmo de cache
         int total_hits_algo = 0;
         int total_misses_algo = 0;
 
-        for (const auto& resultado_user : resultado_algo.resultados_por_usuario) {
+        // Soma hits/misses de todos os usuários do algoritmo.
+        for (const auto& resultado_user : resultado_algo.resultados_por_usuario) { // Percoore cada usuário do algoritmo atual
             total_hits_algo += resultado_user.total_hits;
             total_misses_algo += resultado_user.total_misses;
         }
@@ -127,22 +131,26 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
         int barra_hits = static_cast<int>(std::ceil(total_hits_algo / 8.0));
         int barra_misses = static_cast<int>(std::ceil(total_misses_algo / 8.0));
 
-        std::cout << " Hits Totais   [" << std::setw(4) << total_hits_algo << "] | ";
-        setConsoleColorGreen();
+        // Imprime a linha de hits totais com barra em verde.
+        std::cout << " Hits Totais   [" << std::setw(4) << total_hits_algo << "] | "; // Mostra a quantidade de hits do algortimo
+        setConsoleColorGreen(); // Seta a cor do console para verde
         for (int i = 0; i < barra_hits; ++i) std::cout << "=";
-        resetConsoleColor();
+        resetConsoleColor(); 
         std::cout << "\n";
 
-        std::cout << " Misses Totais [" << std::setw(4) << total_misses_algo << "] | ";
-        setConsoleColorRed();
+        // Imprime a linha de misses totais com barra em vermelho.
+        std::cout << " Misses Totais [" << std::setw(4) << total_misses_algo << "] | "; // Mostra a quantidade de misses do algortimo
+        setConsoleColorRed(); // Seta a cor do console para vermelha
         for (int i = 0; i < barra_misses; ++i) std::cout << "=";
         resetConsoleColor();
         std::cout << "\n\n";
 
-        // Usuário do mesmo algoritmo
-        for (const auto& resultado_user : resultado_algo.resultados_por_usuario) {
+        // Gráfico de usuário do mesmo algoritmo
+        for (const auto& resultado_user : resultado_algo.resultados_por_usuario) { // Percorre cada usuário do algoritmo atual
 
-            std::string nome_modelo;
+            std::string nome_modelo; 
+
+            // Determina o nome do modelo de acordo com o usuário
             if (resultado_user.id_usuario == 1) nome_modelo = "Modelo Puro";
             else if (resultado_user.id_usuario == 2) nome_modelo = "Modelo Poisson";
             else nome_modelo = "Modelo Ponderado";
@@ -150,23 +158,23 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
             int hits_usuario = resultado_user.total_hits;
             int misses_usuario = resultado_user.total_misses;
 
-            // Escala: 1 "=" para cada 4 unidades (arredondado pra cima)
+            // Escala: 1 "=" para cada 8 unidades (arredondado pra cima)
             int barra_hits_user = static_cast<int>(std::ceil(hits_usuario / 8.0));
             int barra_misses_user = static_cast<int>(std::ceil(misses_usuario / 8.0));
 
-            std::cout << "  [User " << resultado_user.id_usuario << " - " << nome_modelo << "]\n";
+            std::cout << "  [User " << resultado_user.id_usuario << " - " << nome_modelo << "]\n"; // Mostra na tela o id do usuário e o seu modelo correspondente
 
             // Hits
-            std::cout << "       Hits    [" << std::setw(4) << hits_usuario << "] | ";
-            setConsoleColorGreen();
-            for (int i = 0; i < barra_hits_user; ++i) std::cout << "=";
+            std::cout << "       Hits    [" << std::setw(4) << hits_usuario << "] | "; // Mostra a quantidade de hits do usuario do algoritmo atual
+            setConsoleColorGreen(); // Seta a cor do console para verde
+            for (int i = 0; i < barra_hits_user; ++i) std::cout << "="; // Imprime a linha de hits por usuário com barra verde.
             resetConsoleColor();
             std::cout << "\n";
 
             // Misses
-            std::cout << "       Misses  [" << std::setw(4) << misses_usuario << "] | ";
-            setConsoleColorRed();
-            for (int i = 0; i < barra_misses_user; ++i) std::cout << "=";
+            std::cout << "       Misses  [" << std::setw(4) << misses_usuario << "] | "; // Mostra a quantidade de misses do usuario do algoritmo atual
+            setConsoleColorRed(); // Seta a cor do console para vermelha
+            for (int i = 0; i < barra_misses_user; ++i) std::cout << "="; // Imprime a linha de misses por usuário com barra vermelha.
             resetConsoleColor();
             std::cout << "\n";
         }
@@ -175,16 +183,16 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
     std::cout << "\n---------------------------------------------------------------------------------------------------\n";
 }
 
-// Função para salvar a escolha do algoritmo em um arquivo
+// Função para salvar a escolha do algoritmo em um arquivo (persistência)
 void salvarEscolhaCache(const std::string & nome_algoritmo) {
     // std::ofstream abre o arquivo para escrita, cria ele se não existir ou sobrescreve se já existir.
     std::ofstream arquivo_config("cache_config.txt");
-    if (arquivo_config.is_open()) {
-        arquivo_config << nome_algoritmo;
-        arquivo_config.close();
+    if (arquivo_config.is_open()) { // Verifica se o arquivo abriu corretamente
+        arquivo_config << nome_algoritmo; // Escreve o nome do algoritmo escolhido pelo modo de simulação no arquivo
+        arquivo_config.close(); // Fecha o arquivo
         std::cout << "\n>>> Escolha salva em 'cache_config.txt' para futuras inicializacoes. <<<";
     }
-    else {
+    else { // Caso o arquivo não tenha sido aberto, mostra mensagem de erro
         std::cout << "ERRO: Nao foi possivel salvar a escolha do cache no arquivo de configuracao.\n";
     }
 }
