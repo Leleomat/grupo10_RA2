@@ -53,21 +53,30 @@ int main() {
     // Se não houver, 'cacheAtual' será um ponteiro nulo.
     CachePtr cacheAtual = carregarCacheSalvo();
     
+    // Variável para guardar o vencedor da simulação apenas na sessão atual.
+    std::string vencedor_desta_sessao = "";
     std::cout << " ~~~~~ Bem-vindo ao Leitor de Textos da 'Texto eh Vida'! ~~~~~ " << std::endl;
 
     int idTexto = -1; // Variável para armazenar a escolha do usuário.
 
     // Loop principal do programa, continua executando até o usuário escolher sair.
     while (true) {
-        // --- Exibição do Menu ---
-        if (!cacheAtual) { // Se nenhum cache foi escolhido ainda.
-            std::cout << " Nenhum algoritmo de cache esta ativo. Execute o modo de simulacao (-1) para escolher um." << std::endl;
+        if (!cacheAtual) { // Se nenhum cache foi escolhido ainda
+            if (vencedor_desta_sessao.empty()) {
+                // Estado 1: Primeira execução, sem cache e sem simulação rodada ainda.
+                std::cout << "\n Nenhum algoritmo de cache esta ativo. Execute o modo de simulacao (-1) para escolher um." << std::endl;
+            }
+            else {
+                // Estado 2: Sem cache ativo, mas uma simulação já foi rodada nesta sessão.
+                std::cout << "\n Nenhum algoritmo de cache rodando. Vencedor da simulacao: [" << vencedor_desta_sessao << "]." << std::endl;
+                std::cout << " Encerre e inicie o programa novamente para ativar o algoritmo." << std::endl;
+            }
             std::cout << " -1 para entrar no modo de simulacao" << std::endl;
             std::cout << "  0 para sair" << std::endl;
             std::cout << " Sua escolha: ";
         }
         else { // Se algum cache já está carregado e ativo.
-            std::cout << "\n>>> Algoritmo de cache ('" << cacheAtual->getNome() << "') carregado. <<<\n\n";
+            std::cout << "\n>>> Algoritmo de cache vencedor da inicializacao anterior '" << cacheAtual->getNome() << "' carregado. <<<\n\n";
             std::cout << " Digite o numero do texto que deseja ler (1-100), ou:" << std::endl;
             std::cout << " -1 para entrar no modo de simulacao" << std::endl;
             std::cout << "  0 para sair" << std::endl;
@@ -92,8 +101,11 @@ int main() {
         else if (idTexto == -1) { // Opção -1: Entrar no modo de simulação.
             // Executa a simulação e captura o nome do algoritmo vencedor.
             std::string vencedor_simulacao = executarSimulacao();
+            
+            // Armazena o vencedor na variável da sessão.
+            vencedor_desta_sessao = vencedor_simulacao;
 
-            std::cout << "\n>>> Simulacao concluida! <<<" << std::endl;
+            std::cout << "\n>>> Simulacao concluida!" << std::endl;
 
             // Verifica se a string não está vazia (caso a simulação falhe por algum motivo)
             // Informa ao usuário qual algoritmo será usado na próxima inicialização.

@@ -2,6 +2,18 @@
 
 ## Aplicativo de leitura de textos no terminal do Windows que minimize o tempo de carregamento de textos físicos em memória utilizando três sistemas de cache.
 
+## Main
+É o coração do projeto, contém a interface que acopla os diferentes tipos de cache, além do laço principal da aplicação que interage com o usuário no terminal, lendo o número do texto desejado e tratando as entradas especiais.
+
+Ao rodar pela primeira vez, será necessário rodar o Modo de Simulação para decidir qual o melhor algoritmo para armazenar os textos em cache, após isso, deve-se fechar o programa e iniciá-lo novamente, agora o algoritmo de cache estará ativo e o programa perguntará se você:
+* Gostaria de ver determinado texto a partir do algoritmo de cache atual, perguntando qual o número que identifica o texto desejado;
+* Caso a entrada do terminal esteja entre 1 e 100, o programa abre o texto para leitura e fica aguardando o número de um novo texto ou de um novo comando;
+* Se o número for zero o programa é encerrado;
+* Se o número for -1 o programa entra em modo de simulação, que determinará qual algoritmo de cache será usado pelo programa na próxima vez que ele for inicializado.
+
+## Core
+É a estrutura base do projeto, inclui a leitura e armazenamento dos 100 textos a partir do disco (armazenamento lento), retornando o conteúdo lido ao algoritmo de cache que o solicitou.
+
 ## Algoritmo FIFO 
 Ele mantém os textos em uma **fila de inserção**, e quando o cache atinge sua capacidade máxima, o **primeiro texto que foi adicionado é removido** para dar espaço ao novo.
 
@@ -64,3 +76,24 @@ Com isso, o programa iniciará diretamente com o algoritmo LRU para ser feito os
 ## Estrutura ICache 
 A estrutura é relativamente simples porém essencial, ela é a classe genérica que é implementada nos algoritmos que herdam e implementam seus métodos, como o FIFO, Random Replacement e LRU, implementando o polimorfismo.
 
+## Modo de Simulação
+Para acessar o Modo de Simulação do projeto basta confirmar a entrada "-1" sem as aspas na interface principal. A principal função desse Modo de Simulação é indicar qual o algoritmo de cache mais eficiente dentre as implementadas (FIFO, RR e LRU), que será usado pelo programa na próxima vez que ele for inicializado.
+
+Este modo simula o acesso de 3 usuários aleatórios por algoritmo de cache, onde cada usuário faz ao menos 200 solicitações de arquivos, e cada solicitação utiliza 3 modos diferentes de escolha do arquivo:
+1. aleatório, puro e simples;
+2. aleatório com distribuição de Poisson e;
+3. aleatório de forma que textos numerados entre 30 e 40 tenham 43% de chance de serem sorteados.
+
+Ou seja, cada algoritmo recebe 600 solicitações (200 de cada usuário/modelo de escolha de arquivo), totalizando ao final da simulação 1800 solicitações realizadas em conjunto pelos três algoritmos de cache. 
+
+Ao final da simulação é informado:
+* Cada um dos usuários;
+* Cada um dos algoritmos de cache; 
+* O tempo gasto entre a solicitação do arquivo e a apresentação deste arquivo no terminal (cache hit e time);
+* O número de vezes que um determinado arquivo foi solicitado e não estava no cache (cache miss e time) considerando os usuários aleatórios e os modos de sorteio dos arquivos;
+* Um conjunto de gráficos formatados em ASCII para apresentar as grandezas necessárias a tomada de decisão sobre a escolha do algoritmo de cache:
+1. *Gráfico de resumo de performance, que abrange a média do tempo gasto de cada usuário em cada algoritmo;*
+2. *Gráfico das médias de tempo gasto de cada algoritmo;*
+3. *Gráfico de Hits e Misses de cada algoritmo;*
+4. *Gráfico de Hits e Misses de cada usuário por algoritmo.*
+* Relatório Final comparando os tempos médios de cada algoritmo ao fim da simulação, e declarando qual o vencedor que será utilizado na próxima inicialização.
