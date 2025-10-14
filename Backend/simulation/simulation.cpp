@@ -10,6 +10,7 @@
 #include <windows.h>
 #include <iomanip>    // Para std::setw, std::left
 #include <algorithm>  // Para std::max_element
+#include <fstream> // Para manipulação de arquivos
 
 // Includes para os tipos de cache
 #include "../main/FifoCache.h"
@@ -37,7 +38,7 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
 
             double tempo_total = 0;
             for (const auto& s : resultado_user.solicitacoes) {
-                tempo_total += s.tempo_ms;
+                tempo_total += s.tempo_us;
             }
             double tempo_medio = resultado_user.solicitacoes.empty() ? 0 : tempo_total / resultado_user.solicitacoes.size();
             tempos_medios.push_back(tempo_medio);
@@ -60,13 +61,13 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
         std::cout << std::left << std::setw(12) << legendas[i]
             << "[" << std::right << std::setw(5) << static_cast<int>(tempos_medios[i]) << " ms] | ";
 
-        if (tempos_medios[i] > 200) {
+        if (tempos_medios[i] > 8000) {
             setConsoleColorRed();
         }
-        else if (tempos_medios[i] > 160) { // Se não for > 200, checa se é > 160
+        else if (tempos_medios[i] > 5000) { // Se não for > 8000us, checa se é > 5000us
             setConsoleColorYellow();
         }
-        else { // Se não for nenhum dos anteriores, é <= 160
+        else { // Se não for nenhum dos anteriores, é <= 5000us
             setConsoleColorGreen();
         }
 
@@ -93,10 +94,10 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
         }
 
         std::cout << std::left << std::setw(12) << legenda_algo
-            << "[" << std::right << std::setw(5) << static_cast<int>(media_algo) << " ms] | ";
+            << "[" << std::right << std::setw(5) << static_cast<int>(media_algo) << " us] | ";
 
-        if (media_algo > 200) setConsoleColorRed();
-        else if (media_algo > 160) setConsoleColorYellow();
+        if (media_algo > 8000) setConsoleColorRed();
+        else if (media_algo > 5000) setConsoleColorYellow();
         else setConsoleColorGreen();
 
         for (int j = 0; j < barra; ++j) std::cout << "=";
@@ -104,7 +105,7 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
 
         std::cout << "\n";
     }
-    std::cout << " Legenda: Verde (< 160ms) | Amarelo (160-200ms) | Vermelho (> 200ms)\n\n";
+    std::cout << "\n Legenda: Verde (< 5000us) | Amarelo (5000-8000us) | Vermelho (> 8000us)\n\n";
 
     std::cout << " ~~~~~~~~~~~~~~~ GRAFICO DE HITS & MISSES POR ALGORITMO ~~~~~~~~~~~~~~~ \n";
 
@@ -120,11 +121,11 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
         }
 
         std::string nome = resultado_algo.nome_algoritmo;
-        std::cout << "\n------ [" << nome << "]\n";
+        std::cout << "\n--------------------------------------------- [ " << nome << " ] ---------------------------------------------\n";
 
         // Escala: 1 "=" para cada 8 unidades (arredondado pra cima)
-        int barra_hits = std::ceil(total_hits_algo / 8.0);
-        int barra_misses = std::ceil(total_misses_algo / 8.0);
+        int barra_hits = static_cast<int>(std::ceil(total_hits_algo / 8.0));
+        int barra_misses = static_cast<int>(std::ceil(total_misses_algo / 8.0));
 
         std::cout << " Hits Totais   [" << std::setw(4) << total_hits_algo << "] | ";
         setConsoleColorGreen();
@@ -150,8 +151,8 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
             int misses_usuario = resultado_user.total_misses;
 
             // Escala: 1 "=" para cada 4 unidades (arredondado pra cima)
-            int barra_hits_user = std::ceil(hits_usuario / 4.0);
-            int barra_misses_user = std::ceil(misses_usuario / 4.0);
+            int barra_hits_user = static_cast<int>(std::ceil(hits_usuario / 8.0));
+            int barra_misses_user = static_cast<int>(std::ceil(misses_usuario / 8.0));
             
             std::cout << "  [User " << resultado_user.id_usuario << " - " << nome_modelo << "]\n";
 
@@ -171,9 +172,22 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
         }
         
     }
-    std::cout << "\n-------------------------------------------------------------------------\n";
+    std::cout << "\n---------------------------------------------------------------------------------------------------\n";
 }
 
+// Função para salvar a escolha do algoritmo em um arquivo
+void salvarEscolhaCache(const std::string & nome_algoritmo) {
+    // std::ofstream abre o arquivo para escrita, cria ele se não existir ou sobrescreve se já existir.
+    std::ofstream arquivo_config("cache_config.txt");
+    if (arquivo_config.is_open()) {
+        arquivo_config << nome_algoritmo;
+        arquivo_config.close();
+        std::cout << "\n>>> Escolha salva em 'cache_config.txt' para futuras inicializacoes. <<<";
+    }
+    else {
+        std::cout << "ERRO: Nao foi possivel salvar a escolha do cache no arquivo de configuracao.\n";
+    }
+}
 
 // Alias para facilitar
 using CachePtr = std::shared_ptr<ICache>;
@@ -230,12 +244,14 @@ ResultadoUsuario simularUsuario(CachePtr cache, int usuarioId) {
         }
 
         auto inicio = std::chrono::high_resolution_clock::now();
-        Texto texto = cache->getTexto(idTexto);
+        //Captura a struct completa retornada pelo getTexto
+        CacheGetResult resultado_get = cache->getTexto(idTexto);
         auto fim = std::chrono::high_resolution_clock::now();
 
-        auto duracao_us = std::chrono::duration_cast<std::chrono::milliseconds>(fim - inicio).count();
-        bool foi_hit = duracao_us < 125; // Menor que 125ms significa que está no cache, pois para puxar do disco sempre demora mais de 200ms
+        auto duracao_us = std::chrono::duration_cast<std::chrono::microseconds>(fim - inicio).count();
 
+        // A decisão de HIT/MISS vem diretamente do cache
+        bool foi_hit = resultado_get.foi_hit;
         // Guarda os dados detalhados da solicitação
         resultado.solicitacoes.push_back({ idTexto, duracao_us, foi_hit, modo_sorteio });
 
@@ -263,18 +279,18 @@ void exibirRelatorioFinal(const std::vector<ResultadoAlgoritmo>& todos_resultado
                 const auto& s = resultado_user.solicitacoes[i];
                 std::cout << "[Solicitacao " << i + 1 << ": Arquivo " << s.id_texto << ".txt"
                     << " // Modo de sorteio: " << s.modo_sorteio
-                    << " // Tempo: " << s.tempo_ms << " ms"
+                    << " // Tempo: " << s.tempo_us << " us"
                     << " // " << (s.foi_hit ? "HIT" : "MISS") << "]" << std::endl;
             }
 
             // Adicionando o sumário por usuário
             double tempo_total = 0;
             for (const auto& s : resultado_user.solicitacoes) {
-                tempo_total += s.tempo_ms;
+                tempo_total += s.tempo_us;
             }
             std::cout << "\n[SUMARIO USER " << resultado_user.id_usuario << " (" << resultado_algo.nome_algoritmo << ")]" << std::endl;
             std::cout << " -> Total Hits: " << resultado_user.total_hits << " | Total Misses: " << resultado_user.total_misses << std::endl;
-            std::cout << " -> Tempo medio por solicitacao: " << tempo_total / resultado_user.solicitacoes.size() << " ms" << std::endl;
+            std::cout << " -> Tempo medio por solicitacao: " << tempo_total / resultado_user.solicitacoes.size() << " us" << std::endl;
         }
 
         // 2. Calcula e imprime o resumo de hits/misses por arquivo
@@ -302,12 +318,12 @@ void exibirRelatorioFinal(const std::vector<ResultadoAlgoritmo>& todos_resultado
 }
 
 // Função principal do simulador
-CachePtr executarSimulacao() {
+std::string executarSimulacao() {
     std::vector<ResultadoAlgoritmo> todos_os_resultados;
     const std::vector<std::string> nomesCache = { "FIFO", "LRU", "RR" };
 
     // Mapa para guardar o desempenho de cada algoritmo (nome -> total de misses)
-    std::map<std::string, double> performance; // mapeia nome -> tempo médio em ms
+    std::map<std::string, double> performance; // mapeia nome -> tempo médio em us
 
     for (const auto& nome : nomesCache) {
         ResultadoAlgoritmo resultado_algo_atual;
@@ -328,7 +344,7 @@ CachePtr executarSimulacao() {
                 // Calcula o tempo total e médio para este usuário
                 double tempo_total_usuario = 0;
                 for (const auto& s : res_user.solicitacoes) {
-                    tempo_total_usuario += s.tempo_ms;
+                    tempo_total_usuario += s.tempo_us;
                 }
 
                 // Calcula o tempo médio para ESTE usuário
@@ -367,7 +383,7 @@ CachePtr executarSimulacao() {
     double menor_tempo_medio = -1.0;
 
     for (const auto& par : performance) {
-        std::cout << "[ANALISE] Tempo medio final para " << par.first << ": " << par.second << " ms" << std::endl;
+        std::cout << "[ANALISE] Tempo medio final para " << par.first << ": " << par.second << " us" << std::endl;
         if (menor_tempo_medio < 0 || par.second < menor_tempo_medio) {
             menor_tempo_medio = par.second;
             melhor_algoritmo = par.first;
@@ -375,14 +391,15 @@ CachePtr executarSimulacao() {
     }
 
     std::cout << "\n===================================================================\n";
-    std::cout << ">>> VENCEDOR DA SIMULACAO: " << melhor_algoritmo << " (com tempo medio de " << menor_tempo_medio << " ms) <<<" << std::endl;
+    std::cout << ">>> VENCEDOR DA SIMULACAO: " << melhor_algoritmo << " (com tempo medio de " << menor_tempo_medio << " us) <<<" << std::endl;
     std::cout << "===================================================================\n";
 
-    // --- Retorna uma nova instância do algoritmo vencedor ---
-    if (melhor_algoritmo == "FIFO") return std::make_shared<FifoCache>();
-    if (melhor_algoritmo == "LRU") return std::make_shared<LruCache>();
-    if (melhor_algoritmo == "RR") return std::make_shared<RRCache>();
+    // Salva a escolha do algoritmo para a próxima execução
+    if (!melhor_algoritmo.empty()) {
+        salvarEscolhaCache(melhor_algoritmo);
+    }
 
-    return nullptr;
+    // Retorna o nome do algoritmo vencedor para quem chamou a função no main
+    return melhor_algoritmo;
 
 }

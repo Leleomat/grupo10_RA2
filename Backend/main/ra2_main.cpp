@@ -12,6 +12,27 @@
 #include <chrono>
 #define NOMINMAX
 #include <windows.h>
+#include <fstream> // Para manipulação de arquivos
+
+// Função para carregar o cache salvo do arquivo de configuração
+CachePtr carregarCacheSalvo() {
+    std::ifstream arquivo_config("cache_config.txt");
+    if (arquivo_config.is_open()) {
+        std::string nome_algoritmo;
+        if (std::getline(arquivo_config, nome_algoritmo)) {
+            if (nome_algoritmo == "FIFO") {
+                return std::make_shared<FifoCache>();
+            }
+            if (nome_algoritmo == "LRU") {
+                return std::make_shared<LruCache>();
+            }
+            if (nome_algoritmo == "RR") {
+                return std::make_shared<RRCache>();
+            }
+        }
+    }
+    return nullptr; // Retorna nulo se o arquivo não existir ou for inválido
+}
 
 void mostrarTexto(const Texto& texto) {
     std::cout << "\n--------------------- INICIO DO TEXTO ---------------------\n";
@@ -24,7 +45,8 @@ int main() {
     // FIFO: CachePtr cacheAtual = std::make_shared<FifoCache>();
     // LRU: CachePtr cacheAtual = std::make_shared<LruCache>();
     // RR: CachePtr cacheAtual = std::make_shared<RRCache>();
-    CachePtr cacheAtual = nullptr;
+    // Tenta carregar o cache da última sessão >> >
+    CachePtr cacheAtual = carregarCacheSalvo();
     
     std::cout << " ~~~~~ Bem-vindo ao Leitor de Textos da 'Texto eh Vida'! ~~~~~ " << std::endl;
 
@@ -39,7 +61,7 @@ int main() {
             std::cout << " Sua escolha: ";
         }
         else {
-            std::cout << " Algoritmo de cache ativo: " << cacheAtual->getNome() << std::endl;
+            std::cout << "\n>>> Algoritmo de cache ('" << cacheAtual->getNome() << "') carregado. <<<\n\n";
             std::cout << " Digite o numero do texto que deseja ler (1-100), ou:" << std::endl;
             std::cout << " -1 para entrar no modo de simulacao" << std::endl;
             std::cout << "  0 para sair" << std::endl;
@@ -60,25 +82,34 @@ int main() {
             break; // Encerra o laço
         }
         else if (idTexto == -1) {
-            cacheAtual = executarSimulacao();
+            //Captura o nome do vencedor retornado pela função >> >
+            std::string vencedor_simulacao = executarSimulacao();
 
-            if (cacheAtual) {
-                std::cout << "\n>>> O algoritmo " << cacheAtual->getNome() << " foi selecionado e esta ativo! <<<\n";
+            std::cout << "\n>>> Simulacao concluida! <<<" << std::endl;
+
+            // Verifica se a string não está vazia (caso a simulação falhe por algum motivo)
+            if (!vencedor_simulacao.empty()) {
+                std::cout << ">>> O algoritmo [" << vencedor_simulacao << "] foi o vencedor e sera ativado na proxima vez que o programa for iniciado." << std::endl;
             }
             else {
-                std::cout << "\nERRO: A simulacao nao conseguiu selecionar um algoritmo.\n";
+                std::cout << "Nao foi possivel determinar um vencedor na simulacao.\n" << std::endl;
             }
         }
         else if (idTexto >= 1 && idTexto <= 100) {
             if (cacheAtual) {
                 auto inicio = std::chrono::high_resolution_clock::now();
-                Texto texto = cacheAtual->getTexto(idTexto);
-                mostrarTexto(texto);
+
+                // A chamada a getTexto retorna uma struct.
+                CacheGetResult resultado = cacheAtual->getTexto(idTexto);
+                // O membro '.texto' da struct é passado para a função.
+                mostrarTexto(resultado.texto);
+
                 auto fim = std::chrono::high_resolution_clock::now();
-                auto duracao = std::chrono::duration_cast<std::chrono::milliseconds>(fim - inicio);
-                std::cout << "-------------------------------------------" << std::endl;
-                std::cout << "+++ Tempo total de carregamento: " << duracao.count() << " ms +++" << std::endl;
-                std::cout << "-------------------------------------------" << std::endl;
+                auto duracao = std::chrono::duration_cast<std::chrono::microseconds>(fim - inicio);
+
+                std::cout << "----------------------------------------------" << std::endl;
+                std::cout << "+++ Tempo total de carregamento: " << duracao.count() << " us +++" << std::endl;
+                std::cout << "----------------------------------------------" << std::endl;
                 cacheAtual->printStatus();
             }
             else {
