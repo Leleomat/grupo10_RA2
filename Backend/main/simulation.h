@@ -12,7 +12,7 @@ struct Solicitacao {
     std::string modo_sorteio;
 };
 
-// Estrutura para guardar o resultado completo de um único usuário
+// Estrutura para guardar o resultado completo de um único usuário com sua solicitações
 struct ResultadoUsuario {
     int id_usuario;
     std::vector<Solicitacao> solicitacoes;
@@ -20,7 +20,7 @@ struct ResultadoUsuario {
     int total_misses = 0;
 };
 
-// Estrutura para guardar todos os resultados de um único algoritmo
+// Estrutura para guardar todos os resultados de um único algoritmo com seus usuários
 struct ResultadoAlgoritmo {
     std::string nome_algoritmo;
     std::vector<ResultadoUsuario> resultados_por_usuario;
