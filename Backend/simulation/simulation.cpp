@@ -176,7 +176,7 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
 }
 
 // Função para salvar a escolha do algoritmo em um arquivo
-void salvarEscolhaCache(const std::string& nome_algoritmo) {
+void salvarEscolhaCache(const std::string & nome_algoritmo) {
     // std::ofstream abre o arquivo para escrita, cria ele se não existir ou sobrescreve se já existir.
     std::ofstream arquivo_config("cache_config.txt");
     if (arquivo_config.is_open()) {

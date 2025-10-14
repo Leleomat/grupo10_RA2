@@ -13,10 +13,6 @@ namespace Disco {
 
         std::cout << "[DISCO LENTO] Acessando o disco para ler o arquivo: " << path << "..." << std::endl;
 
-        // --- SIMULAÇÃO DE LENTIDÃO ---
-        // Pausa a execução por 200 milissegundos para simular um disco lento.
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
         std::ifstream arquivo(path);
         if (!arquivo.is_open()) {
             std::cerr << "ERRO: Nao foi possivel abrir o arquivo " << path << std::endl;

@@ -13,24 +13,24 @@ private:
     std::unordered_map<int, std::string> cache; // Armazena os textos no formato id -> conteúdo.
     std::list<int> ordemInsercao;               // Guarda a sequência em que os textos foram inseridos.
     static constexpr size_t MAX_CACHE = 10;     // Define o tamanho máximo do cache (10 textos).
-    bool ultimoHit = false;
 
 public:
     // Construtor padrão (nenhuma inicialização especial).
     FifoCache() = default;
 
-    std::string getTexto(int id) override {
+    // A função agora retorna a struct CacheGetResult.
+    CacheGetResult getTexto(int id) override {
         // Verifica se o texto solicitado já está no cache.
-        if (cache.find(id) != cache.end()) {
+        auto it = cache.find(id);
+        if (it != cache.end()) {
             std::cout << "\n\n" << "[CACHE HIT] TEXTO NO CACHE - FIFO" << "\n\n";
-            ultimoHit = true;
             // Caso esteja, imprime mensagem de acerto e retorna o texto da memória.
-            return cache[id];
+            // Retorna a struct com o texto e 'true' para indicar um hit.
+            return { it->second, true };
         }
 
         // Caso contrário, o texto não está no cache.
         std::cout << "\n[CACHE MISS] O texto " << id << " nao foi encontrado. Solicitando ao Core..." << std::endl;
-        ultimoHit = false;
 
         // Se o cache já estiver cheio, remove o texto mais antigo.
         if (cache.size() == MAX_CACHE) {
@@ -48,8 +48,8 @@ public:
 
         std::cout << "[CACHE] O texto " << id << " foi adicionado ao Cache via FIFO." << std::endl;
 
-        // Retorna o conteúdo do texto (seja ele novo ou já existente).
-        return cache[id];
+        // Retorna a struct com o novo texto e 'false' para indicar um miss.
+        return { textoDoDisco, false };
     }
 
     std::string getNome() const override {
@@ -68,6 +68,5 @@ public:
 
         std::cout << "-----------------------------------------------------------\n" << std::endl;
     }
-    bool foiHit() const override { return ultimoHit; } // ultimoHit é uma variável booleana que você seta em getTexto()
-
+    
 };

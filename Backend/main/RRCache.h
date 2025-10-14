@@ -25,13 +25,13 @@ private:
 
     //Gerador aleatório
     std::mt19937 rng{ std::random_device{}() };
-    bool ultimoHit = false;
 
 public:
     RRCache() = default;
     // Construtor padrão — tudo inicializado pelos membros.
 
-    std::string getTexto(int id) override {
+    // A função agora retorna a struct CacheGetResult.
+    CacheGetResult getTexto(int id) override {
         // Função principal: retorna o texto solicitado, carregando no cache se necessário.
 
         // Se o texto já estiver no cache
@@ -41,14 +41,13 @@ public:
         if (it != cache.end()) {
             std::cout << "\n\n" << "[CACHE HIT] TEXTO NO CACHE - RR" << "\n\n";
             // Log informativo — indica cache hit.
-            ultimoHit = true;
-            return it->second;
-            // Retorna diretamente a string armazenada (não lê do disco).
+            // Retorna a struct com o texto e 'true' para indicar um hit.
+            return { it->second, true }; // Retorna diretamente a string armazenada (não lê do disco).
         }
 
         std::cout << "\n[CACHE MISS] O texto " << id << " nao foi encontrado. Solicitando ao Core..." << std::endl;
         // Log de miss — aqui seria o local para incrementar contador de miss/time measurement.
-        ultimoHit = false;
+
         // Se cache cheio, remove um elemento aleatório
         if (cache.size() == MAX_CACHE) {
             // Escolhe índice aleatório no intervalo válido [0, idsCache.size()-1]
@@ -81,7 +80,8 @@ public:
         std::cout << "[CACHE] O texto " << id << " foi adicionado ao Cache via RR." << std::endl;
         // Log informando inserção.
 
-        return cache[id];
+        // Retorna a struct com o novo texto e 'false' para indicar um miss.
+        return { textoDoDisco, false };
         // Retorna o conteúdo recém-inserido.
     }
 
@@ -98,6 +98,4 @@ public:
         std::cout << "-----------------------------------------------------------\n" << std::endl;
         // Imprime o estado atual do cache (útil para debug). Note que a ordem não tem significado semântico.
     }
-    bool foiHit() const override { return ultimoHit; } // ultimoHit é uma variável booleana que você seta em getTexto()
-
 };
