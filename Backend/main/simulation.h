@@ -1,7 +1,7 @@
 // simulation.h
 #pragma once
-#include <string>
-#include <vector>
+#include <string> // Para usar a classe std::string
+#include <vector> // Acesso ao std::vector, um array dinâmico. 
 #include "../core/ICache.h" // Precisa saber o que é CachePtr
 
 // Estrutura para guardar os dados de uma única solicitação de texto
