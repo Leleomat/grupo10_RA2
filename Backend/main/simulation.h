@@ -7,7 +7,7 @@
 // Estrutura para guardar os dados de uma única solicitação de texto
 struct Solicitacao {
     int id_texto;
-    long long tempo_ms; // tempo em milissegundos
+    long long tempo_us; // tempo em microssegundos
     bool foi_hit;
     std::string modo_sorteio;
 };
@@ -27,4 +27,4 @@ struct ResultadoAlgoritmo {
 };
 
 // Função principal que o main.cpp irá chamar
-CachePtr executarSimulacao();
+std::string executarSimulacao();
