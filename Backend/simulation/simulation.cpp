@@ -10,6 +10,7 @@
 #include <windows.h>
 #include <iomanip>    // Para std::setw, std::left
 #include <algorithm>  // Para std::max_element
+#include <fstream> // Para manipulação de arquivos
 
 // Includes para os tipos de cache
 #include "../main/FifoCache.h"
@@ -37,7 +38,7 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
 
             double tempo_total = 0;
             for (const auto& s : resultado_user.solicitacoes) {
-                tempo_total += s.tempo_ms;
+                tempo_total += s.tempo_us;
             }
             double tempo_medio = resultado_user.solicitacoes.empty() ? 0 : tempo_total / resultado_user.solicitacoes.size();
             tempos_medios.push_back(tempo_medio);
@@ -60,13 +61,13 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
         std::cout << std::left << std::setw(12) << legendas[i]
             << "[" << std::right << std::setw(5) << static_cast<int>(tempos_medios[i]) << " ms] | ";
 
-        if (tempos_medios[i] > 200) {
+        if (tempos_medios[i] > 8000) {
             setConsoleColorRed();
         }
-        else if (tempos_medios[i] > 160) { // Se não for > 200, checa se é > 160
+        else if (tempos_medios[i] > 5000) { // Se não for > 8000us, checa se é > 5000us
             setConsoleColorYellow();
         }
-        else { // Se não for nenhum dos anteriores, é <= 160
+        else { // Se não for nenhum dos anteriores, é <= 5000us
             setConsoleColorGreen();
         }
 
@@ -93,10 +94,10 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
         }
 
         std::cout << std::left << std::setw(12) << legenda_algo
-            << "[" << std::right << std::setw(5) << static_cast<int>(media_algo) << " ms] | ";
+            << "[" << std::right << std::setw(5) << static_cast<int>(media_algo) << " us] | ";
 
-        if (media_algo > 200) setConsoleColorRed();
-        else if (media_algo > 160) setConsoleColorYellow();
+        if (media_algo > 8000) setConsoleColorRed();
+        else if (media_algo > 5000) setConsoleColorYellow();
         else setConsoleColorGreen();
 
         for (int j = 0; j < barra; ++j) std::cout << "=";
@@ -104,7 +105,7 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
 
         std::cout << "\n";
     }
-    std::cout << " Legenda: Verde (< 160ms) | Amarelo (160-200ms) | Vermelho (> 200ms)\n\n";
+    std::cout << "\n Legenda: Verde (< 5000us) | Amarelo (5000-8000us) | Vermelho (> 8000us)\n\n";
 
     std::cout << " ~~~~~~~~~~~~~~~ GRAFICO DE HITS & MISSES POR ALGORITMO ~~~~~~~~~~~~~~~ \n";
 
@@ -120,11 +121,11 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
         }
 
         std::string nome = resultado_algo.nome_algoritmo;
-        std::cout << "\n------ [" << nome << "]\n";
+        std::cout << "\n--------------------------------------------- [ " << nome << " ] ---------------------------------------------\n";
 
         // Escala: 1 "=" para cada 8 unidades (arredondado pra cima)
-        int barra_hits = std::ceil(total_hits_algo / 8.0);
-        int barra_misses = std::ceil(total_misses_algo / 8.0);
+        int barra_hits = static_cast<int>(std::ceil(total_hits_algo / 8.0));
+        int barra_misses = static_cast<int>(std::ceil(total_misses_algo / 8.0));
 
         std::cout << " Hits Totais   [" << std::setw(4) << total_hits_algo << "] | ";
         setConsoleColorGreen();
@@ -140,7 +141,7 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
 
         // Usuário do mesmo algoritmo
         for (const auto& resultado_user : resultado_algo.resultados_por_usuario) {
-            
+
             std::string nome_modelo;
             if (resultado_user.id_usuario == 1) nome_modelo = "Modelo Puro";
             else if (resultado_user.id_usuario == 2) nome_modelo = "Modelo Poisson";
@@ -150,9 +151,9 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
             int misses_usuario = resultado_user.total_misses;
 
             // Escala: 1 "=" para cada 4 unidades (arredondado pra cima)
-            int barra_hits_user = std::ceil(hits_usuario / 4.0);
-            int barra_misses_user = std::ceil(misses_usuario / 4.0);
-            
+            int barra_hits_user = static_cast<int>(std::ceil(hits_usuario / 8.0));
+            int barra_misses_user = static_cast<int>(std::ceil(misses_usuario / 8.0));
+
             std::cout << "  [User " << resultado_user.id_usuario << " - " << nome_modelo << "]\n";
 
             // Hits
@@ -169,220 +170,244 @@ void exibirGraficoResumoASCII(const std::vector<ResultadoAlgoritmo>& todos_resul
             resetConsoleColor();
             std::cout << "\n";
         }
-        
+
     }
-    std::cout << "\n-------------------------------------------------------------------------\n";
+    std::cout << "\n---------------------------------------------------------------------------------------------------\n";
 }
 
+// Função para salvar a escolha do algoritmo em um arquivo
+void salvarEscolhaCache(const std::string& nome_algoritmo) {
+    // std::ofstream abre o arquivo para escrita, cria ele se não existir ou sobrescreve se já existir.
+    std::ofstream arquivo_config("cache_config.txt");
+    if (arquivo_config.is_open()) {
+        arquivo_config << nome_algoritmo;
+        arquivo_config.close();
+        std::cout << "\n>>> Escolha salva em 'cache_config.txt' para futuras inicializacoes. <<<";
+    }
+    else {
+        std::cout << "ERRO: Nao foi possivel salvar a escolha do cache no arquivo de configuracao.\n";
+    }
+}
 
 // Alias para facilitar
-using CachePtr = std::shared_ptr<ICache>;
+using CachePtr = std::shared_ptr<ICache>; // Cria um cache padrão usando a classe pai ICache
 using Texto = std::string;
 
 // Funções de Geração Aleatória
-int aleatorioPuro(int min, int max, std::mt19937& rng) {
-    std::uniform_int_distribution<int> dist(min, max);
-    return dist(rng);
+int aleatorioPuro(int min, int max, std::mt19937& rng) { // Gera um número aleatório entre min = 1 e max = 100 com distribuição uniforme
+    std::uniform_int_distribution<int> dist(min, max); // Define o intervalo e tipo de distribuição
+    return dist(rng); // Retorna o sorteio do número conforme a distribuição
 }
 
-int aleatorioPoisson(double lambda, std::mt19937& rng) {
-    std::poisson_distribution<int> dist(lambda);
-    return dist(rng);
+int aleatorioPoisson(double lambda, std::mt19937& rng) { // Gera um número aleatório usando um lambda = 50 com distribuição de Poisson
+    std::poisson_distribution<int> dist(lambda); // Define o tipo de distribuição
+    return dist(rng); // Retorna o sorteio do número conforme a distribuição
 }
 
-int aleatorioPeso(int min, int max, std::mt19937& rng) {
-    std::uniform_real_distribution<double> chance(0.0, 1.0);
-    if (chance(rng) < 0.43) {
-        std::uniform_int_distribution<int> dist(30, 40);
-        return dist(rng);
+int aleatorioPeso(int min, int max, std::mt19937& rng) { // Gera um número aleatório entre 1 e 100, com peso de 43% entre 30 e 40
+    std::uniform_real_distribution<double> chance(0.0, 1.0); // Cria uma distribuição uniforme de valores reais entre 0.0 e 1.0.
+    if (chance(rng) < 0.43) { // Verifica se gerou uma chance até 43%
+        std::uniform_int_distribution<int> dist(30, 40); // Define o intervalo (30 e 40) e tipo de distribuição
+        return dist(rng); // Retorna o sorteio do número conforme a distribuição
     }
     else {
-        std::uniform_int_distribution<int> dist(min, max);
-        return dist(rng);
+        std::uniform_int_distribution<int> dist(min, max); // Define o intervalo (1 e 100) e tipo de distribuição
+        return dist(rng); // Retorna o sorteio do número conforme a distribuição
     }
 }
 
 // Função de simulação de usuário
 ResultadoUsuario simularUsuario(CachePtr cache, int usuarioId) {
-    ResultadoUsuario resultado;
-    resultado.id_usuario = usuarioId;
+    ResultadoUsuario resultado; // Variável da classe ResultadoUsuario que será retornada ao final da função
+    resultado.id_usuario = usuarioId; // Atribui o id do usuário ao resultado
 
-    std::mt19937 rng(std::random_device{}());
+    std::mt19937 rng(std::random_device{}()); // Inicializa um gerador de números aleatórios
     const int numSolicitacoes = 200; // 200 por Usuario por algoritmo
 
+    // Loop que percorree cada solicitação
     for (int i = 0; i < numSolicitacoes; ++i) {
         std::cout << "\n~~~~~~~~~~ [ALGORITMO: " << cache->getNome() << "] - [USER " << usuarioId << "] - Solicitacao numero " << (i + 1) << " ~~~~~~~~~~";
         int idTexto;
         std::string modo_sorteio;
 
-        if (usuarioId == 1) {
+        // Verifica qual o usuário atual. Cada usuário possuí seu método de busca de id de texto
+        if (usuarioId == 1) { // Se for o usuário 1, utiliza o aleatório puro
             idTexto = aleatorioPuro(1, 100, rng);
             modo_sorteio = "Puro";
         }
-        else if (usuarioId == 2) {
+        else if (usuarioId == 2) { // Se for o usuário 2, utiliza o aleatório com Poisson
             idTexto = aleatorioPoisson(50.0, rng);
-            if (idTexto < 1) idTexto = 1; if (idTexto > 100) idTexto = 100;
+            if (idTexto < 1) idTexto = 1; if (idTexto > 100) idTexto = 100; // Caso retorne algo diferente entre 1 e 100, garante tratamento correto
             modo_sorteio = "Poisson";
         }
-        else {
+        else { // Se não for os outros (usuário 3), utiliza o aleatório ponderado
             idTexto = aleatorioPeso(1, 100, rng);
             modo_sorteio = "Ponderado";
         }
 
-        auto inicio = std::chrono::high_resolution_clock::now();
-        Texto texto = cache->getTexto(idTexto);
-        auto fim = std::chrono::high_resolution_clock::now();
+        auto inicio = std::chrono::high_resolution_clock::now(); // Armazena o tempo inicial
+        //Captura a struct completa retornada pelo getTexto
+        CacheGetResult resultado_get = cache->getTexto(idTexto); // Utiliza o devido algortimo de cache para ler o texto
+        auto fim = std::chrono::high_resolution_clock::now(); // Armazena o tempo final
 
-        auto duracao_us = std::chrono::duration_cast<std::chrono::milliseconds>(fim - inicio).count();
-        bool foi_hit = duracao_us < 125; // Menor que 125ms significa que está no cache, pois para puxar do disco sempre demora mais de 200ms
+        auto duracao_us = std::chrono::duration_cast<std::chrono::microseconds>(fim - inicio).count(); // Calcula a diferença do tempo inicial e final
 
-        // Guarda os dados detalhados da solicitação
+        // A decisão de HIT/MISS vem diretamente do cache
+        bool foi_hit = resultado_get.foi_hit;
+        // Guarda os dados detalhados da solicitação ao final do vetor de solicitações dentro da estrutura de ResultadoUsuario
         resultado.solicitacoes.push_back({ idTexto, duracao_us, foi_hit, modo_sorteio });
 
-        // Atualiza os contadores agregados
+        // Atualiza os contadores agregados ao ResultadoUsuario
         if (foi_hit) resultado.total_hits++;
         else resultado.total_misses++;
     }
 
-    return resultado;
+    return resultado; // Retorna os resultados do usuário que utilizou um dado algoritmo de cache
 }
 
-// Relatorio 
+// Função que mostra o relatório após a realização da simulação
 void exibirRelatorioFinal(const std::vector<ResultadoAlgoritmo>& todos_resultados) {
     std::cout << "\n\n=========================================================\n";
     std::cout << "=== RELATORIO FINAL DA SIMULACAO ===" << std::endl;
 
-    for (const auto& resultado_algo : todos_resultados) {
+    for (const auto& resultado_algo : todos_resultados) { // Loop que percorre o resultado final de cada algoritmo de cache
         std::cout << "=========================================================\n";
-        std::cout << "[ " << resultado_algo.nome_algoritmo << " ]" << std::endl;
+        std::cout << "[ " << resultado_algo.nome_algoritmo << " ]" << std::endl; // Mostra o nome do algoritmo atual
 
-        // 1. Imprime o log detalhado de cada usuário
-        for (const auto& resultado_user : resultado_algo.resultados_por_usuario) {
-            std::cout << "\n[USER " << resultado_user.id_usuario << "]" << std::endl;
-            for (size_t i = 0; i < resultado_user.solicitacoes.size(); ++i) {
-                const auto& s = resultado_user.solicitacoes[i];
-                std::cout << "[Solicitacao " << i + 1 << ": Arquivo " << s.id_texto << ".txt"
-                    << " // Modo de sorteio: " << s.modo_sorteio
-                    << " // Tempo: " << s.tempo_ms << " ms"
-                    << " // " << (s.foi_hit ? "HIT" : "MISS") << "]" << std::endl;
+        // Imprime o log detalhado de cada usuário
+        for (const auto& resultado_user : resultado_algo.resultados_por_usuario) { // Percorre cada usuário de cada algoritmo
+            std::cout << "\n[USER " << resultado_user.id_usuario << "]" << std::endl; // Mostra o id do usuário atual
+            for (size_t i = 0; i < resultado_user.solicitacoes.size(); ++i) { // Loop que percorre cada solicitação do usuário para tal algoritmo
+                const auto& s = resultado_user.solicitacoes[i]; // Armazena a estrutura de Solicitacao, na qual percorrida atualmente
+                std::cout << "[Solicitacao " << i + 1 << ": Arquivo " << s.id_texto << ".txt" // Mostra o id do texto da solicitação
+                    << " // Modo de sorteio: " << s.modo_sorteio // Mostra o modo do sorteio do texto da solicitação
+                    << " // Tempo: " << s.tempo_us << " us" // Mostra o tempo da solicitação
+                    << " // " << (s.foi_hit ? "HIT" : "MISS") << "]" << std::endl; // Mostra se foi cache hit ou miss da solicitação
             }
 
-            // Adicionando o sumário por usuário
+            // Adiciona o sumário por usuário
             double tempo_total = 0;
-            for (const auto& s : resultado_user.solicitacoes) {
-                tempo_total += s.tempo_ms;
+            for (const auto& s : resultado_user.solicitacoes) { // Percorre cada solicitação do usuário
+                tempo_total += s.tempo_us; // Realiza a soma do tempo de todas as solicitações do usuário
             }
-            std::cout << "\n[SUMARIO USER " << resultado_user.id_usuario << " (" << resultado_algo.nome_algoritmo << ")]" << std::endl;
-            std::cout << " -> Total Hits: " << resultado_user.total_hits << " | Total Misses: " << resultado_user.total_misses << std::endl;
-            std::cout << " -> Tempo medio por solicitacao: " << tempo_total / resultado_user.solicitacoes.size() << " ms" << std::endl;
+            std::cout << "\n[SUMARIO USER " << resultado_user.id_usuario << " (" << resultado_algo.nome_algoritmo << ")]" << std::endl; // Mostra na tela o id do usuário e o nome do algoritmo que está utilizando
+            std::cout << " -> Total Hits: " << resultado_user.total_hits << " | Total Misses: " << resultado_user.total_misses << std::endl; // Mostra na tela o total de hits e misses para determinado usuário naquele algoritmo
+            std::cout << " -> Tempo medio por solicitacao: " << tempo_total / resultado_user.solicitacoes.size() << " us" << std::endl; // Mostra o tempo médio das solicitações daquele usuário para aquele algoritmo
         }
 
-        // 2. Calcula e imprime o resumo de hits/misses por arquivo
+        // Calcula e imprime o resumo de hits/misses por arquivo
         std::map<int, std::pair<int, int>> stats_por_arquivo; // id -> {hits, misses}
-        for (const auto& resultado_user : resultado_algo.resultados_por_usuario) {
-            for (const auto& s : resultado_user.solicitacoes) {
-                if (s.foi_hit) {
-                    stats_por_arquivo[s.id_texto].first++;
+        for (const auto& resultado_user : resultado_algo.resultados_por_usuario) { // Percorre cada usuário de cada algoritmo
+            for (const auto& s : resultado_user.solicitacoes) { // Percorre cada solicitação de cada usuário
+                if (s.foi_hit) { // Verifica se aquela solicitação foi hit
+                    stats_por_arquivo[s.id_texto].first++; // Caso seja hit, soma +1 para tal id a quantidade de hits
                 }
                 else {
-                    stats_por_arquivo[s.id_texto].second++;
+                    stats_por_arquivo[s.id_texto].second++; // Caso não seja hit, soma +1 para tal id a quantidade de misses
                 }
             }
         }
 
-        std::cout << "\n[SUMARIO GERAL DO ALGORITMO: " << resultado_algo.nome_algoritmo << " (Todos os Usuarios)]" << std::endl;
+        // Adiciona o sumário por algoritmo
+        std::cout << "\n[SUMARIO GERAL DO ALGORITMO: " << resultado_algo.nome_algoritmo << " (Todos os Usuarios)]" << std::endl; // Mostra na tela o nome do algoritmo
         std::cout << "\n[Arquivos Texto:]" << std::endl;
-        for (const auto& par : stats_por_arquivo) {
-            int id = par.first;
-            int hits = par.second.first;
-            int misses = par.second.second;
-            std::cout << "[" << id << ".txt: " << hits << " Hit // " << misses << " Miss]" << std::endl;
+        for (const auto& par : stats_por_arquivo) { // Percorre cada item do resumo de hits/misses realizados utilizando cada solicitação
+            int id = par.first; // Armazena o id do texto 
+            int hits = par.second.first; // Armazena a quantidade de hits para tal id
+            int misses = par.second.second; // Armazena a quantidade misses para tal id
+            std::cout << "[" << id << ".txt: " << hits << " Hit // " << misses << " Miss]" << std::endl; // Apresenta na tela o id do texto, e a quantidade de hits e misses que ocorreram durante a execução de um algoritmo
         }
     }
 }
 
 // Função principal do simulador
-CachePtr executarSimulacao() {
-    std::vector<ResultadoAlgoritmo> todos_os_resultados;
-    const std::vector<std::string> nomesCache = { "FIFO", "LRU", "RR" };
+std::string executarSimulacao() {
+    std::vector<ResultadoAlgoritmo> todos_os_resultados; // Vetor da classe ResultadoAlgoritmo que armazena o resultado dos 3 algoritmos utilizados
+    const std::vector<std::string> nomesCache = { "FIFO", "LRU", "RR" }; // Vetor que contém o nome dos algoritmos 
 
     // Mapa para guardar o desempenho de cada algoritmo (nome -> total de misses)
-    std::map<std::string, double> performance; // mapeia nome -> tempo médio em ms
+    std::map<std::string, double> performance; // mapeia nome -> tempo médio em us
 
+    // Loop que percorre cada algoritmo
     for (const auto& nome : nomesCache) {
-        ResultadoAlgoritmo resultado_algo_atual;
-        resultado_algo_atual.nome_algoritmo = nome;
+        ResultadoAlgoritmo resultado_algo_atual; // Cria uma instância da classe de resultado algortimo, sendo futuramente armazenada no vetor
+        resultado_algo_atual.nome_algoritmo = nome; // Atribui o nome do algoritmo a classe ResultadoAlgoritmo
 
         // Vetor para guardar os tempos médios de cada um dos 3 usuários
         std::vector<double> tempos_medios_usuarios;
 
+        // Loop que percorre cada usuário
         for (int usuario = 1; usuario <= 3; ++usuario) {
-            CachePtr cache;
+            CachePtr cache; // Cria um cache com estrutura padrão
+
+            // Verifica o nome do algoritmo atual, e utiliza o seu devido algoritmo de cache
             if (nome == "FIFO") cache = std::make_shared<FifoCache>();
             else if (nome == "LRU") cache = std::make_shared<LruCache>();
             else if (nome == "RR") cache = std::make_shared<RRCache>();
 
-            if (cache) {
-                ResultadoUsuario res_user = simularUsuario(cache, usuario);
+            if (cache) { // Verifica se está utilizando um dos algoritmos de cache
+                ResultadoUsuario res_user = simularUsuario(cache, usuario); // Cria uma instância da classe de ResultadoUsuario através da função de simularUsuario()
 
-                // Calcula o tempo total e médio para este usuário
+                // Calcula o tempo total para este usuário
                 double tempo_total_usuario = 0;
-                for (const auto& s : res_user.solicitacoes) {
-                    tempo_total_usuario += s.tempo_ms;
+                for (const auto& s : res_user.solicitacoes) { // Percorre cada solicitação do usuário
+                    tempo_total_usuario += s.tempo_us; // Soma o tempo de cada uma e armazena num total 
                 }
 
-                // Calcula o tempo médio para ESTE usuário
+                // Calcula o tempo médio para este usuário
                 double tempo_medio_usuario = 0;
-                if (!res_user.solicitacoes.empty()) {
-                    tempo_medio_usuario = tempo_total_usuario / res_user.solicitacoes.size();
+                if (!res_user.solicitacoes.empty()) { // Verifica se há solicitações (evita divisão nula)
+                    tempo_medio_usuario = tempo_total_usuario / res_user.solicitacoes.size(); // Calcula o tempo médio, fazendo a divisão do tempo total pela quantidade de solicitações
                 }
-                // Guarda o tempo médio deste usuário no vetor
+                // Guarda o tempo médio deste usuário para tal algortimo no vetor
                 tempos_medios_usuarios.push_back(tempo_medio_usuario);
 
-                // Roda a simulação e guarda o resultado do usuário
+                // Roda a simulação e guarda o resultado do usuário no ResultadoAlgortimo
                 resultado_algo_atual.resultados_por_usuario.push_back(res_user);
             }
         }
-        // 1. Soma os 3 tempos médios dos usuários
+        // Soma os 3 tempos médios dos usuários usando a função accumulate()
         double soma_dos_medios = std::accumulate(tempos_medios_usuarios.begin(), tempos_medios_usuarios.end(), 0.0);
-        // 2. Divide por 3 para obter a média geral do algoritmo
+        // Divide por 3 para obter a média geral do algoritmo
         double media_geral_algoritmo = 0;
-        if (!tempos_medios_usuarios.empty()) {
-            media_geral_algoritmo = soma_dos_medios / tempos_medios_usuarios.size();
+        if (!tempos_medios_usuarios.empty()) { // Verifica se há tempos médios (evita divisão nula)
+            media_geral_algoritmo = soma_dos_medios / tempos_medios_usuarios.size(); // Calcula o tempo médio, fazendo a divisão do tempo total pela quantidade de tempos
         }
 
         // Guarda a performance final do algoritmo
-        performance[nome] = media_geral_algoritmo;
+        performance[nome] = media_geral_algoritmo; // Para determinado algortimo, armazena a media geral de tempo dos 3 usuários que utilizaram 
 
-        // Guarda o resultado consolidado do algoritmo
+        // Guarda o resultado consolidado do algoritmo no vetor de resultados dos algoritmos
         todos_os_resultados.push_back(resultado_algo_atual);
     }
 
-    // Imprime o relatório
+    // Imprime o relatório e os gráficos correspondentes, enviando o vetor de todos os resultados
     exibirRelatorioFinal(todos_os_resultados);
     exibirGraficoResumoASCII(todos_os_resultados);
 
     // Vencedor baseado no tempo médio
     std::string melhor_algoritmo = "";
-    double menor_tempo_medio = -1.0;
+    double menor_tempo_medio = -1.0; // Inicializa o menor tempo médio como -1
 
-    for (const auto& par : performance) {
-        std::cout << "[ANALISE] Tempo medio final para " << par.first << ": " << par.second << " ms" << std::endl;
-        if (menor_tempo_medio < 0 || par.second < menor_tempo_medio) {
-            menor_tempo_medio = par.second;
-            melhor_algoritmo = par.first;
+    for (const auto& par : performance) { // Percorre cada par da performance
+        std::cout << "[ANALISE] Tempo medio final para " << par.first << ": " << par.second << " us" << std::endl; // Apresenta na tela o nome do algoritmo e o tempo médios dos 3 usuários para ele
+        if (menor_tempo_medio < 0 || par.second < menor_tempo_medio) { // Verifica se o tempo médio daquele algoritmo é menor que o anterior
+            menor_tempo_medio = par.second; // Armazena o valor do novo menor tempo médio
+            melhor_algoritmo = par.first; // Armazena o valor do novo melhor algoritmo
         }
     }
 
+    // Vencedor baseado em tempo médio
     std::cout << "\n===================================================================\n";
-    std::cout << ">>> VENCEDOR DA SIMULACAO: " << melhor_algoritmo << " (com tempo medio de " << menor_tempo_medio << " ms) <<<" << std::endl;
+    std::cout << ">>> VENCEDOR DA SIMULACAO: " << melhor_algoritmo << " (com tempo medio de " << menor_tempo_medio << " us) <<<" << std::endl; // Apresenta o nome do algoritmo o seu tempo
     std::cout << "===================================================================\n";
 
-    // --- Retorna uma nova instância do algoritmo vencedor ---
-    if (melhor_algoritmo == "FIFO") return std::make_shared<FifoCache>();
-    if (melhor_algoritmo == "LRU") return std::make_shared<LruCache>();
-    if (melhor_algoritmo == "RR") return std::make_shared<RRCache>();
+    // Salva a escolha do algoritmo para a próxima execução
+    if (!melhor_algoritmo.empty()) { // Verifica se há algum melhor algoritmo escolhido
+        salvarEscolhaCache(melhor_algoritmo); // Faz o salvamento da escolha do melhor algoritmo no arquivo
+    }
 
-    return nullptr;
+    // Retorna o nome do algoritmo vencedor para quem chamou a função no main
+    return melhor_algoritmo;
 
 }
