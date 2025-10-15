@@ -97,3 +97,5 @@ Ao final da simulação é informado:
 3. *Gráfico de Hits e Misses de cada algoritmo;*
 4. *Gráfico de Hits e Misses de cada usuário por algoritmo.*
 * Relatório Final comparando os tempos médios de cada algoritmo ao fim da simulação, e declarando qual o vencedor que será utilizado na próxima inicialização.
+
+#### Observação: Todos os textos foram gerados com palavras aleatórias via um algoritmo em Python, garantindo que não haja problema de Copyright.
