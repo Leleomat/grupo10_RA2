@@ -2,6 +2,8 @@
 
 ## Aplicativo de leitura de textos no terminal do Windows que minimize o tempo de carregamento de textos físicos em memória utilizando três sistemas de cache.
 
+#### Observação: Todos os textos foram gerados com palavras aleatórias via um algoritmo em Python, garantindo que não haja problema de Copyright.
+
 ## Algoritmo FIFO 
 Ele mantém os textos em uma **fila de inserção**, e quando o cache atinge sua capacidade máxima, o **primeiro texto que foi adicionado é removido** para dar espaço ao novo.
 
